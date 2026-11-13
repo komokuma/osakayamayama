@@ -1,0 +1,1386 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>당근 몽둥이 토끼</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
+<style>
+/* 레이아웃: 화면 전체가 3D 놀이터, 위에 이름표, 아래 양쪽에 스틱과 당근 버튼 */
+:root{
+  --sky:#cfe6f5; --hp:#f0647f; --sta:#f2b632; --ink:#5a4a42; --ink-soft:#9a857b;
+  --paper:#fffaf7; --carrot:#ff9a3c; --carrot-deep:#e9781a; --leaf:#7cc47a;
+  --display:"Jua","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  color-scheme:light;
+}
+html,body{height:100%}
+body{background:var(--sky);color:var(--ink);font-family:var(--display);overflow:hidden;position:relative;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.hud{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;
+  padding-block:14px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px))}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+h1{margin:0;font-size:1.5rem;font-weight:400;line-height:1.1;text-wrap:balance}
+.hint{margin:4px 0 0;font-size:.85rem;color:var(--ink-soft)}
+.score{background:var(--paper);border:2.5px solid var(--ink);border-radius:999px;padding:6px 14px;font-size:.95rem;
+  white-space:nowrap;font-variant-numeric:tabular-nums}
+.pad{display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:10px}
+#stick{pointer-events:auto;touch-action:none;width:124px;height:124px;border-radius:50%;
+  background:rgba(255,250,247,.7);border:2.5px solid var(--ink);position:relative}
+#knob{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;
+  background:var(--paper);border:2.5px solid var(--ink)}
+#fire{grid-column:2;pointer-events:auto;touch-action:none;width:96px;height:96px;border-radius:50%;
+  background:var(--carrot);border:2.5px solid var(--ink);color:var(--ink);font-family:var(--display);font-size:1.15rem;
+  box-shadow:0 5px 0 var(--carrot-deep);cursor:pointer}
+.sm{pointer-events:auto;touch-action:none;width:68px;height:68px;border-radius:50%;
+  background:var(--paper);border:2.5px solid var(--ink);color:var(--ink);font-family:var(--display);font-size:.95rem;
+  box-shadow:0 5px 0 var(--ink-soft);cursor:pointer}
+.sm:active,.sm.on{transform:translateY(4px);box-shadow:0 1px 0 var(--ink-soft)}
+.sm:focus-visible{outline:3px solid var(--leaf);outline-offset:3px}
+.btns{display:grid;grid-template-columns:auto auto;gap:10px;justify-items:end;align-items:end}
+.bars{display:grid;gap:5px;margin-top:8px}
+.bar{display:flex;align-items:center;gap:8px;font-size:.85rem}
+.track{width:150px;max-width:42vw;height:14px;border:2.5px solid var(--ink);border-radius:999px;background:var(--paper);overflow:hidden}
+.track i{display:block;height:100%;transform-origin:left center;background:var(--hp)}
+#sta{background:var(--sta)}
+.track.no{border-color:var(--hp)}
+.ehp.ehp{position:absolute;left:0;top:0;width:64px;height:11px;border-width:2px;pointer-events:none}
+#pop{position:absolute;left:0;top:0;pointer-events:none;font-size:1.3rem;color:var(--ink);white-space:nowrap;
+  text-shadow:0 2px 0 var(--paper),0 -2px 0 var(--paper),2px 0 0 var(--paper),-2px 0 0 var(--paper)}
+#fire:active,#fire.on{transform:translateY(4px);box-shadow:0 1px 0 var(--carrot-deep)}
+#fire:focus-visible{outline:3px solid var(--leaf);outline-offset:3px}
+.side{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+#snd{pointer-events:auto;background:var(--paper);border:2.5px solid var(--ink);border-radius:999px;padding:5px 12px;
+  color:var(--ink);font-family:var(--display);font-size:.85rem;cursor:pointer}
+#snd:focus-visible{outline:3px solid var(--leaf);outline-offset:3px}
+.score{display:flex;align-items:center;gap:8px;white-space:normal;max-width:46vw;border-radius:18px;font-size:.88rem;line-height:1.2}
+#arrow{display:inline-block;color:var(--carrot-deep);font-size:1rem}
+.row2{display:flex;align-items:center;gap:8px;font-size:.85rem;font-variant-numeric:tabular-nums}
+.bars{margin-top:0}
+.track{width:120px;max-width:34vw}
+#dlg{pointer-events:auto;margin-top:10px;max-width:520px;background:var(--paper);border:2.5px solid var(--ink);border-radius:16px;
+  padding:10px 14px;font-size:1rem;line-height:1.45;cursor:pointer}
+#who{color:var(--carrot-deep);font-weight:400;margin-right:8px}
+#toast{position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);pointer-events:none;font-size:1.9rem;white-space:nowrap;
+  text-shadow:0 2px 0 var(--paper),0 -2px 0 var(--paper),2px 0 0 var(--paper),-2px 0 0 var(--paper)}
+@media (pointer:coarse){.hint{display:none}}
+.left{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+#ride{background:var(--carrot);box-shadow:0 5px 0 var(--carrot-deep)}
+#ride:active,#ride.on{box-shadow:0 1px 0 var(--carrot-deep)}
+#saw{background:#ffd9d9}
+#saw{position:relative}
+#saw.on{background:#f0647f;color:#fff;border-color:#fff;box-shadow:0 0 0 3px #f0647f,0 0 18px 4px rgba(240,100,127,.75)}
+#saw.on::after{content:"";position:absolute;inset:-11px;border-radius:50%;pointer-events:none;
+  background:conic-gradient(from 0deg,rgba(255,255,255,0) 0deg,rgba(255,255,255,0) 40deg,#ffd23f 150deg,#fff 180deg,rgba(255,255,255,0) 181deg,rgba(255,255,255,0) 220deg,#ffd23f 330deg,#fff 360deg);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 5px));
+  mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 5px));
+  animation:sawspin .7s linear infinite}
+@keyframes sawspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){#saw.on::after{animation:none}}
+.side{flex-shrink:0}
+.score,#snd,.row2{white-space:nowrap}
+.score{max-width:none}
+#toast{top:40%;font-size:1.5rem}
+.bar,.row2>span,.hint{color:var(--ink);text-shadow:0 0 3px #fff,0 0 3px #fff}
+#fail{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px}
+</style>
+
+<canvas id="c"></canvas>
+<div class="hud">
+  <div class="upper">
+    <div class="top">
+      <div>
+        <div class="bars">
+          <div class="bar"><span>체력</span><div class="track"><i id="hp"></i></div></div>
+          <div class="bar"><span>기력</span><div class="track" id="staT"><i id="sta"></i></div></div>
+        </div>
+        <p class="hint">키보드: WASD 이동, Q·E 또는 마우스로 끌어 시야, 스페이스 점프, J 발사, H 몽둥이, G 전기톱, K 구르기, L 돌진, F 타기, M 소리</p>
+      </div>
+      <div class="side">
+        <div class="score"><span id="arrow">▲</span><span id="goal">평화로운 도톤보리</span></div>
+        <div class="row2"><span>KO <span id="n">0</span></span><button id="snd" type="button" aria-pressed="true">소리 켬</button></div>
+      </div>
+    </div>
+    <div id="dlg" hidden><b id="who"></b><span id="txt"></span></div>
+  </div>
+  <div class="pad">
+    <div class="left"><button id="ride" class="sm" type="button" hidden>타기</button><div id="stick" aria-label="이동 스틱"><div id="knob"></div></div></div>
+    <div class="btns"><button id="hit" class="sm" type="button">몽둥이</button><button id="saw" class="sm" type="button" aria-pressed="false">전기톱</button><button id="jump" class="sm" type="button">점프</button><button id="dash" class="sm" type="button">돌진</button><button id="roll" class="sm" type="button">구르기</button><button id="fire" type="button">발사</button></div>
+  </div>
+</div>
+<div id="pop" hidden></div>
+<div id="toast" hidden></div>
+<div id="fail" hidden>이 기기에서는 3D 화면을 띄울 수 없어요.</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+if(!window.THREE){document.getElementById('fail').hidden=false;return;}
+const T=THREE, canvas=document.getElementById('c');
+let renderer;
+try{renderer=new T.WebGLRenderer({canvas,antialias:true});}catch(e){document.getElementById('fail').hidden=false;return;}
+let PR=Math.min(window.devicePixelRatio||1,(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches)?1.5:2);
+renderer.setPixelRatio(PR);
+const scene=new T.Scene(); scene.background=new T.Color(0xcfe6f5); scene.fog=new T.Fog(0xdcebf5,45,105);
+const cam=new T.PerspectiveCamera(45,1,0.3,110);
+
+const INK=0x5a4a42, SPH=new T.SphereGeometry(1,28,20);
+const lineMat=new T.MeshBasicMaterial({color:INK,side:T.BackSide});
+/* ---------- 조명: 낮게 뜬 해, 부드러운 그림자, 하늘빛 반사 ---------- */
+const COARSE=window.matchMedia&&window.matchMedia('(pointer:coarse)').matches;
+scene.add(new T.HemisphereLight(0xffffff,0xd0d6e2,0.5));
+const sun=new T.DirectionalLight(0xfff0d6,0.52); scene.add(sun); scene.add(sun.target);
+const fill=new T.DirectionalLight(0xcfe0ff,0.12); fill.position.set(-8,6,-10); scene.add(fill);   // 그늘 쪽에 도는 푸른 반사광
+let lit=true;
+try{
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=T.PCFSoftShadowMap;
+  sun.castShadow=true; sun.shadow.mapSize.set(COARSE?1024:2048,COARSE?1024:2048);
+  const sc=sun.shadow.camera; sc.left=-20;sc.right=20;sc.top=20;sc.bottom=-20;sc.near=1;sc.far=70;sc.updateProjectionMatrix();
+  sun.shadow.bias=-0.0006; sun.shadow.normalBias=0.05; sun.shadow.radius=3;
+  // 반사에 비칠 하늘: 분홍빛 하늘, 밝은 해, 풀빛 땅
+  const es=new T.Scene();
+  es.add(new T.Mesh(new T.SphereGeometry(20,24,16),new T.MeshBasicMaterial({color:0xcfe6f5,side:T.BackSide})));
+  const sb=new T.Mesh(new T.SphereGeometry(4,16,12),new T.MeshBasicMaterial({color:0xffffff})); sb.position.set(10,12,6); es.add(sb);
+  const gd=new T.Mesh(new T.CircleGeometry(20,24),new T.MeshBasicMaterial({color:0xb9b9b4})); gd.rotation.x=-Math.PI/2; gd.position.y=-3; es.add(gd);
+  const pm=new T.PMREMGenerator(renderer); scene.environment=pm.fromScene(es,0.03).texture; pm.dispose();
+}catch(e){lit=false;}
+const flat=(c,o)=>o===undefined?new T.MeshStandardMaterial({color:c,roughness:0.5,metalness:0,envMapIntensity:0.3})
+  :new T.MeshBasicMaterial({color:c,transparent:true,opacity:o});
+const toon=c=>flat(c);
+// 그림자를 드리울 것과 받을 것을 정한다. 외곽선, 납작한 바닥, 꽃잎은 그림자를 드리우지 않는다
+function shade(root){
+  root.traverse(m=>{
+    if(!m.isMesh)return;
+    const mat=Array.isArray(m.material)?m.material[0]:m.material;
+    if(!mat.isMeshStandardMaterial)return;
+    m.receiveShadow=true;
+    const t=m.geometry.type;
+    m.castShadow=!(t==='CircleGeometry'||t==='PlaneGeometry'||t==='RingGeometry'||m.scale.y<0.05);
+  });
+}
+// 타원체 + 손그림 느낌의 외곽선
+function blob(rx,ry,rz,color,line){
+  const m=new T.Mesh(SPH,toon(color)); m.scale.set(rx,ry,rz);
+  if(line!==0){const t=line||0.028,o=new T.Mesh(SPH,lineMat);o.scale.set(1+t/rx,1+t/ry,1+t/rz);m.add(o);}
+  return m;
+}
+function dot(rx,ry,rz,mat){const m=new T.Mesh(SPH,mat);m.scale.set(rx,ry,rz);return m;}
+const at=(o,x,y,z)=>{o.position.set(x,y,z);return o;};
+const spring=()=>({x:0,v:0});
+function step(s,target,k,d,dt){s.v+=(-k*(s.x-target)-d*s.v)*dt;s.x+=s.v*dt;}
+
+const carG=new T.LatheGeometry([[0.03,0],[0.075,0.05],[0.11,0.3],[0.16,0.65],[0.2,0.92],[0.2,1.0],[0.16,1.08],[0.08,1.12],[0,1.13]].map(q=>new T.Vector2(q[0],q[1])),18);
+function canvasTex(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'));return new T.CanvasTexture(c);}
+/* ---------- 세계: 낮의 오사카 도톤보리. 에비스바시 다리, 광고판 건물, 운하와 강변 산책로 ---------- */
+const ARENA=58, CZ0=-13, CZ1=-3;                         // 운하 골짜기는 z -13 ~ -3 사이를 동서로 지난다
+const BRIDGES=[{x:-30,hw:3.5},{x:0,hw:7},{x:30,hw:3.5}]; // 가운데가 넓은 에비스바시
+const GAPS=[[-33.5,-26.5],[-7,7],[26.5,33.5]];           // 다리로 이어지는 남북 길
+let seed=11; const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647;};
+const wet=(c,r)=>new T.MeshStandardMaterial({color:c,roughness:r,metalness:0,envMapIntensity:0.35});
+function slab(x,z,w,d,mat,y){const m=new T.Mesh(new T.PlaneGeometry(w,d),mat);m.rotation.x=-Math.PI/2;m.position.set(x,y||0,z);scene.add(m);return m;}
+function box(w,h,d,mat,x,y,z,line){
+  const geo=new T.BoxGeometry(w,h,d), m=new T.Mesh(geo,mat); m.position.set(x,y,z);
+  if(line){const l=new T.Mesh(geo,lineMat);l.scale.set(1+0.06/w,1+0.06/h,1+0.06/d);m.add(l);}
+  scene.add(m); return m;
+}
+// 바닥
+const road=wet(0x9a9da3,0.85), paving=wet(0xd6cfc1,0.8), tile=wet(0xc4bdb0,0.8);
+slab(0,(CZ1+62)/2,130,62-CZ1,road); slab(0,(CZ0-62)/2,130,62+CZ0,road);
+slab(0,11,130,12,tile,0.004);                           // 도톤보리 거리
+slab(0,7,14,20,paving,0.008); slab(0,-21.5,14,17,paving,0.008);   // 에비스바시로 이어지는 보행자 거리
+// 운하: 아래로 꺼진 물길, 양옆의 낮은 강변 산책로
+slab(0,-8,130,5,new T.MeshStandardMaterial({color:0x2c6a58,roughness:0.14,metalness:0.1,envMapIntensity:0.55}),-2.4);
+const stone=wet(0xb9bcc0,0.8), railMat=wet(0x8e949b,0.5), postAt=[];
+[[-11.75,1],[-4.25,-1]].forEach(([z,s])=>{
+  slab(0,z,130,2.5,wet(0xcfcac0,0.8),-1.5);                       // 강변 산책로
+  box(130,1.5,0.3,stone,0,-0.75,z-s*1.25);                        // 거리 쪽 축대
+  box(130,0.9,0.2,stone,0,-1.95,z+s*1.25);                        // 물가 턱
+  box(130,0.08,0.08,railMat,0,-0.75,z+s*1.2);                     // 물가 난간
+  for(let x=-56;x<=56;x+=4)postAt.push([x,-1.12,z+s*1.2]);
+});
+{ const im=new T.InstancedMesh(new T.BoxGeometry(0.08,0.75,0.08),railMat,postAt.length), mt=new T.Matrix4();
+  postAt.forEach((q,i)=>{mt.makeTranslation(q[0],q[1],q[2]);im.setMatrixAt(i,mt);}); im.frustumCulled=false; scene.add(im); }
+BRIDGES.forEach(b=>{
+  const big=b.hw>5;
+  box(b.hw*2,0.6,CZ1-CZ0,big?paving:road,b.x,-0.31,-8);                                   // 다리 상판
+  [-1,1].forEach(s=>{
+    box(0.45,1.0,CZ1-CZ0,stone,b.x+s*(b.hw-0.1),0.5,-8,true);                              // 돌 난간
+    box(b.hw*2,2.0,0.5,stone,b.x,-1.6,-8+s*4.6);                                           // 다릿발
+  });
+});
+// 건물: 밝은 콘크리트 벽, 창문 줄, 1층 가게와 세로 간판 (가게 이름은 모두 지어낸 것)
+const SIGNC=['#e8452c','#1f6fd1','#f2a31b','#1e9c5a','#d43b8a','#444b57'];
+const SHOPS=['당근야키','토끼라멘','たこ焼き','ラーメン','お好み焼き','串カツ','カラオケ','당근주스','토끼사진관','오락실','居酒屋','당근빵'];
+function facade(i){return canvasTex(256,512,g=>{
+  g.fillStyle=['#e9e6df','#d9dde2','#f2efe6','#cfd6dc','#e6dccb','#dcd3c6'][i%6];g.fillRect(0,0,256,512);
+  for(let r=0;r<9;r++){
+    g.fillStyle='rgba(0,0,0,.08)';g.fillRect(0,10+r*40,256,3);
+    for(let c=0;c<5;c++){g.fillStyle=rnd()<0.75?'#5d6f82':'#8fa6ba';g.fillRect(16+c*47,18+r*40,34,26);}
+  }
+  const a=SIGNC[i%6],b=SIGNC[(i+2)%6];
+  g.fillStyle=a;g.fillRect(8,380,240,58);g.fillStyle='#fff';g.font='bold 40px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(SHOPS[i%SHOPS.length],128,410);
+  g.fillStyle='#2f3640';g.fillRect(20,444,216,68);g.fillStyle='#ffe9a8';g.fillRect(30,452,90,60);g.fillStyle='#cfe6f5';g.fillRect(132,452,94,60);   // 가게 입구와 진열창
+  g.fillStyle=b;g.fillRect(i%2?200:12,96,44,268);g.fillStyle='#fff';g.font='bold 32px sans-serif';
+  const t=SHOPS[(i+5)%SHOPS.length];for(let k=0;k<Math.min(5,t.length);k++)g.fillText(t[k],(i%2?200:12)+22,128+k*50);
+});}
+const fronts=[]; for(let i=0;i<8;i++)fronts.push(new T.MeshStandardMaterial({map:facade(i),roughness:0.85,envMapIntensity:0.2}));
+const roofMat=wet(0x8b9096,0.9);
+const obstacles=[];
+function building(x,z,w,d,h,i){
+  const f=fronts[i%8], m=new T.Mesh(new T.BoxGeometry(w,h,d),[f,f,roofMat,roofMat,f,f]); m.position.set(x,h/2,z); scene.add(m);
+  obstacles.push({x,z,hw:w/2,hd:d/2,h:99,r:Math.hypot(w/2,d/2)});
+}
+// 한 줄의 건물을 남북 길(GAPS)만 비우고 채운다
+function row(z0,z1,gaps,i,tall){
+  let a=-56;
+  gaps.concat([[56,56]]).forEach(([g0,g1])=>{
+    const n=Math.max(1,Math.round((g0-a)/8)), w=(g0-a)/n;
+    for(let k=0;k<n&&g0-a>1;k++)building(a+w*(k+0.5),(z0+z1)/2,w-0.12,z1-z0,tall?tall(a+w*(k+0.5)):8+rnd()*7,i++);
+    a=g1;
+  });
+}
+const cornerH=x=>Math.abs(x)<17?(x<0?19:15):9+rnd()*7;      // 에비스바시 모퉁이 건물은 높다
+row(-22,CZ0,GAPS,0,cornerH);                                // 운하 북쪽 줄
+row(CZ1,5,GAPS,3,x=>Math.abs(x)<17?7:8+rnd()*6);           // 운하 남쪽 줄 (도톤보리 거리와 운하 사이)
+row(17,26,[[22.4,29.6]],5);                                 // 도톤보리 거리 남쪽 줄 (경찰서 자리만 비움)
+row(-39,-30,[],1);                                          // 북쪽 거리 건너편
+building(26,23.6,7,4.8,11,2);
+[[-59,11,12],[59,11,12],[-59,-26,8],[59,-26,8]].forEach(([x,z,d],i)=>building(x,z,6,d,12,i+4));   // 거리 끝을 막는 건물
+// 광고판: 에비스바시 북서쪽 모퉁이 건물을 뒤덮은 커다란 광고들 (내용은 모두 지어낸 것)
+function bunnyArt(g,cx,cy,s,fur){
+  g.fillStyle=fur||'#fff';g.strokeStyle='#5a4a42';g.lineWidth=s*0.05;
+  [-0.34,0.34].forEach(o=>{g.beginPath();g.ellipse(cx+o*s,cy-s*0.85,s*0.2,s*0.5,o*0.25,0,7);g.fill();g.stroke();});
+  g.beginPath();g.ellipse(cx,cy,s*0.9,s*0.72,0,0,7);g.fill();g.stroke();
+  g.fillStyle='rgba(255,150,170,.6)';[-0.55,0.55].forEach(o=>{g.beginPath();g.ellipse(cx+o*s,cy+s*0.2,s*0.2,s*0.13,0,0,7);g.fill();});
+  g.lineCap='round';g.lineJoin='round';
+  g.beginPath();g.moveTo(cx-s*0.42,cy-s*0.12);g.lineTo(cx-s*0.24,cy-s*0.02);g.lineTo(cx-s*0.42,cy+s*0.08);g.stroke();
+  g.beginPath();g.moveTo(cx+s*0.42,cy-s*0.12);g.lineTo(cx+s*0.24,cy-s*0.02);g.lineTo(cx+s*0.42,cy+s*0.08);g.stroke();
+  g.fillStyle='#f4a3b3';g.beginPath();g.ellipse(cx,cy+s*0.26,s*0.1,s*0.13,0,0,7);g.fill();g.stroke();
+}
+function carrotArt(g,cx,cy,s,rot){
+  g.save();g.translate(cx,cy);g.rotate(rot||0);
+  g.fillStyle='#57b85a';[-0.3,0,0.3].forEach(r=>{g.save();g.rotate(r);g.beginPath();g.ellipse(0,-s*0.75,s*0.1,s*0.3,0,0,7);g.fill();g.restore();});
+  g.fillStyle='#ff8a2a';g.beginPath();g.moveTo(-s*0.3,-s*0.5);g.quadraticCurveTo(0,-s*0.68,s*0.3,-s*0.5);g.lineTo(s*0.05,s*0.7);g.lineTo(-s*0.05,s*0.7);g.closePath();g.fill();
+  g.restore();
+}
+const text=(g,t,x,y,px,c)=>{g.fillStyle=c;g.font='bold '+px+'px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(t,x,y);};
+const ADS=[
+  g=>{g.fillStyle='#fff';g.fillRect(0,0,256,256);text(g,'당근 한 입의 감동',128,88,26,'#31436b');text(g,'TOKKI',128,160,64,'#1d3c7a');},
+  g=>{g.fillStyle='#1f6fd1';g.fillRect(0,0,256,256);bunnyArt(g,128,128,62);text(g,'토끼우유',128,226,34,'#fff');},
+  g=>{const q=g.createLinearGradient(0,0,0,512);q.addColorStop(0,'#ffd0e0');q.addColorStop(1,'#ffe9a8');g.fillStyle=q;g.fillRect(0,0,256,512);   // 가장 큰 광고: 우리 토끼
+      g.fillStyle='rgba(255,255,255,.55)';for(let i=0;i<14;i++){g.beginPath();g.arc((i*67)%256,(i*131)%512,10+(i%3)*6,0,7);g.fill();}
+      text(g,'당근!',128,70,72,'#e8452c');bunnyArt(g,118,290,96);carrotArt(g,200,330,120,0.5);text(g,'한 입 더',128,460,40,'#5a4a42');},
+  g=>{g.fillStyle='#ffe14a';g.fillRect(0,0,256,256);text(g,'たこ焼き',128,60,48,'#d4302a');
+      g.fillStyle='#ff5a6e';g.beginPath();g.arc(128,150,52,0,7);g.fill();for(let i=0;i<5;i++){g.beginPath();g.ellipse(84+i*22,208,10,22,(i-2)*0.25,0,7);g.fill();}
+      g.fillStyle='#fff';[108,148].forEach(x=>{g.beginPath();g.arc(x,140,12,0,7);g.fill();});g.fillStyle='#222';[110,150].forEach(x=>{g.beginPath();g.arc(x,142,5,0,7);g.fill();});},
+  g=>{g.fillStyle='#1e9c5a';g.fillRect(0,0,256,256);g.fillStyle='#fff';g.beginPath();g.moveTo(128,36);g.lineTo(208,104);g.lineTo(48,104);g.closePath();g.fill();g.fillRect(70,104,116,70);text(g,'토끼부동산',128,216,36,'#fff');},
+  g=>{g.fillStyle='#f2671b';g.fillRect(0,0,128,512);['당','근','주','스'].forEach((c,i)=>text(g,c,64,76+i*120,84,'#fff'));},
+  g=>{g.fillStyle='#fff';g.fillRect(0,0,256,256);g.fillStyle='#d43b8a';g.fillRect(0,0,256,70);text(g,'カラオケ',128,36,40,'#fff');carrotArt(g,128,160,110,-0.3);},
+  g=>{g.fillStyle='#31436b';g.fillRect(0,0,256,256);text(g,'토끼라멘',128,70,48,'#ffd23f');g.fillStyle='#fff3e2';g.beginPath();g.ellipse(128,170,84,24,0,0,7);g.fill();g.fillStyle='#fff';g.beginPath();g.moveTo(44,170);g.quadraticCurveTo(128,290,212,170);g.fill();},
+];
+function ad(k,cx,cy,cz,w,h,face){   // face: 's'는 남쪽(+z), 'e'는 동쪽(+x), 'w'는 서쪽(-x)을 본다
+  const tall=k===2||k===5, m=new T.Mesh(new T.PlaneGeometry(w,h),new T.MeshBasicMaterial({map:canvasTex(k===5?128:256,tall?512:256,ADS[k])}));
+  const fr=new T.Mesh(new T.BoxGeometry(w+0.3,h+0.3,0.16),wet(0x3a4048,0.6)); fr.position.z=-0.1; m.add(fr);
+  m.position.set(cx,cy,cz); m.rotation.y=face==='e'?Math.PI/2:face==='w'?-Math.PI/2:0; scene.add(m);
+}
+// 북서쪽 모퉁이 건물(x -17~-7, 높이 19): 운하를 보는 남쪽 면
+ad(0,-14.4,14.2,-12.9,4.6,7.4,'s'); ad(1,-14.4,6.6,-12.9,4.6,6.6,'s'); ad(2,-9.5,10.2,-12.9,4.6,13.6,'s');
+// 같은 건물의 동쪽 면 (다리로 이어지는 길을 본다)
+ad(5,-6.9,10.6,-14.6,2.4,11.5,'e'); ad(3,-6.9,13.2,-18.6,4.8,6.4,'e'); ad(4,-6.9,6.4,-18.6,4.8,5.6,'e');
+// 북동쪽 모퉁이 건물(x 7~17, 높이 15)
+ad(6,6.9,9.6,-17.2,6,6,'w'); ad(7,12,9.6,-12.9,7,7,'s');
+// 도톤보리 거리 위로 튀어나온 입체 간판 (모두 지어낸 것)
+(()=>{
+  const o=new T.Group();                                                                              // 타코야키집 문어
+  const hd=new T.Mesh(SPH,flat(0xff5a6e)); hd.scale.set(1.5,1.35,1.2); o.add(hd);
+  [-0.55,0.55].forEach(x=>{const e=new T.Mesh(SPH,flat(0xffffff));e.scale.setScalar(0.36);e.position.set(x,0.3,1.0);o.add(e);const p=new T.Mesh(SPH,flat(0x231d3a));p.scale.setScalar(0.16);p.position.set(x,0.3,1.32);o.add(p);});
+  for(let i=0;i<6;i++){const t=new T.Mesh(SPH,flat(0xff7a8c));t.scale.set(0.34,0.75,0.34);t.position.set(-1.35+i*0.54,-1.35,0.45);t.rotation.z=(i-2.5)*0.2;o.add(t);}
+  o.position.set(-16,5.2,5.9); scene.add(o);
+  const r=new T.Group();                                                                              // 라멘 그릇
+  r.add(new T.Mesh(new T.CylinderGeometry(1.7,0.9,1.2,24),flat(0xfff3e2)));
+  const band=new T.Mesh(new T.CylinderGeometry(1.72,1.55,0.28,24),flat(0xe8452c)); band.position.y=0.36; r.add(band);
+  const soup=new T.Mesh(new T.CylinderGeometry(1.58,1.58,0.08,24),flat(0xffd23f)); soup.position.y=0.6; r.add(soup);
+  [-0.14,0.14].forEach(x=>{const s=new T.Mesh(new T.CylinderGeometry(0.05,0.05,3,6),flat(0xc99f72));s.position.set(0.8+x,1.4,0);s.rotation.z=-0.5;r.add(s);});
+  r.position.set(14,5,6); r.rotation.x=0.7; scene.add(r);
+  const g=new T.Group(), c=new T.Mesh(carG,flat(0xff8a2a)); c.scale.setScalar(4); g.add(c);          // 거대 당근
+  [[-0.4,0.5],[0.4,-0.5],[0,0]].forEach(([x,q])=>{const l=new T.Mesh(SPH,flat(0x57b85a));l.scale.set(0.3,0.9,0.26);l.position.set(x,5.1,0);l.rotation.z=-q;g.add(l);});
+  g.position.set(-38,2.6,5.9); g.rotation.z=-0.5; scene.add(g);
+})();
+// 운하를 오가는 유람선
+const boat=new T.Group();
+{ boat.add(new T.Mesh(new T.BoxGeometry(5,0.7,1.8),wet(0xffd23f,0.4)));
+  const roof=new T.Mesh(new T.BoxGeometry(3.6,0.15,1.9),wet(0xe8452c,0.4)); roof.position.y=1.2; boat.add(roof);
+  [-1.6,1.6].forEach(x=>{const p=new T.Mesh(new T.BoxGeometry(0.1,1.0,0.1),railMat);p.position.set(x,0.75,0);boat.add(p);});
+  boat.position.set(-40,-2.1,-8); scene.add(boat); }
+
+/* ---------- 장애물: 술통과 나무 상자는 점프로 넘거나 올라설 수 있다. 건물과 운하는 돌아가야 한다 ---------- */
+const BODY=0.4, STEP=0.25;
+const PICK=[[-5,10],[9,13],[-22,9],[20,13],[-42,11],[44,9],[0,-26],[-14,-25],[14,-27],[3,-18]];
+function addObs(x,z,r,h,rock){
+  const side=flat(rock?0xe9dcae:0xc99468), top=flat(rock?0xf6ecc6:0xe2b98a);
+  const g=new T.CylinderGeometry(r*(rock?0.9:0.97),r*1.06,h,32);
+  const m=new T.Mesh(g,[side,top,side]); at(m,x,h/2,z);
+  const l=new T.Mesh(g,lineMat); l.scale.set(1+0.05/r,1+0.06/h,1+0.05/r); m.add(l);
+  [0.25,0.75].forEach(q=>{const b=new T.Mesh(new T.CylinderGeometry(r*1.05,r*1.07,h*0.08,32),flat(0x4a3d38));b.position.y=h*(q-0.5);m.add(b);});   // 통 테
+  scene.add(m); const o={x,z,r,h}; obstacles.push(o); return o;
+}
+[[-10,6.4,0.8,0.6,0],[11,6.6,1.0,1.0,0],[12.7,6.3,0.8,1.9,1],[-13,15.8,1.2,0.45,1],[8.5,15.9,0.7,0.8,0],
+ [-21,6.3,0.8,0.8,1],[-22.6,6.6,0.7,0.5,0],[20,15.8,0.9,0.6,0],[-36,15.7,1.0,1.0,1],[-37.6,15.9,0.7,0.6,0],[38,6.4,0.9,0.8,1],[41,15.8,0.8,0.5,0],
+ [-46,7,1.0,0.6,0],[47,14,0.9,1.0,1],[-11,-23,0.7,0.6,0],[10,-28.6,0.8,0.8,1],[-38,-23.2,0.8,0.6,1],[40,-28.8,0.7,0.5,0]].forEach(a=>addObs(a[0],a[1],a[2],a[3],a[4]));
+const inside=(o,x,z,pad)=>o.hw?Math.abs(x-o.x)<o.hw+pad&&Math.abs(z-o.z)<o.hd+pad:Math.hypot(x-o.x,z-o.z)<o.r+pad;
+const onBridge=(x,pad)=>BRIDGES.find(b=>Math.abs(x-b.x)<b.hw+pad);
+const overWater=(x,z)=>z>CZ0&&z<CZ1&&!onBridge(x,0);
+// 발밑 높이: 충분히 높이 떠 있을 때만 장애물 윗면이 바닥이 된다
+function floorAt(x,z,y){let f=0;for(const o of obstacles){if(y>=o.h-STEP&&o.h>f&&inside(o,x,z,0.1))f=o.h;}return f;}
+// 윗면보다 낮으면 옆면에 막힌다. 운하는 다리로만 건널 수 있다
+function pushOut(P,y,rad){
+  let hit=null;
+  for(const o of obstacles){
+    if(y>=o.h-STEP)continue;
+    const dx=P.x-o.x,dz=P.z-o.z;
+    if(o.hw){
+      const px=o.hw+rad,pz=o.hd+rad,ax=Math.abs(dx),az=Math.abs(dz);
+      if(ax<px&&az<pz){if(px-ax<pz-az)P.x=o.x+(dx<0?-px:px);else P.z=o.z+(dz<0?-pz:pz);hit=o;}
+      continue;
+    }
+    if(dx>3||dx<-3||dz>3||dz<-3)continue;
+    const d=Math.hypot(dx,dz),m=o.r+rad;
+    if(d<m){if(d>0.001){P.x=o.x+dx/d*m;P.z=o.z+dz/d*m;}else P.x=o.x+m;hit=o;}
+  }
+  if(P.z>CZ0-rad&&P.z<CZ1+rad){
+    const b=onBridge(P.x,0.5), lim=b?Math.max(0.05,b.hw-0.4-rad):0;
+    if(b)P.x=Math.max(b.x-lim,Math.min(b.x+lim,P.x));           // 다리 위에서는 난간 안쪽에 머문다
+    else P.z=P.z<(CZ0+CZ1)/2?CZ0-rad:CZ1+rad;
+  }
+  return hit;
+}
+// 길 찾기: 북쪽 거리(N), 도톤보리 거리(S), 그 사이를 잇는 남북 길과 다리(C). 지금 향해야 할 중간 지점을 돌려준다
+const zoneOf=z=>z<-22?'N':z>5?'S':'C';
+const nearBridge=x=>BRIDGES.reduce((a,b)=>Math.abs(b.x-x)<Math.abs(a.x-x)?b:a);
+function via(R,tx,tz){
+  const zr=zoneOf(R.z), zt=zoneOf(tz);
+  if(zr==='C'){
+    const b=nearBridge(R.x);
+    if(zt==='C')return nearBridge(tx)===b?null:{x:b.x,z:8};
+    return Math.abs(tx-b.x)<b.hw-1?null:{x:b.x,z:zt==='N'?-24.5:8};
+  }
+  if(zr===zt)return null;
+  let b=BRIDGES[0],best=1e9;
+  if(zt==='C')b=nearBridge(tx);
+  else for(const k of BRIDGES){const c=Math.abs(k.x-R.x)+Math.abs(k.x-tx);if(c<best){best=c;b=k;}}
+  if(Math.abs(R.x-b.x)<b.hw-1.2)return zt==='C'?null:{x:b.x,z:zr==='S'?-24.5:8};
+  return {x:b.x,z:zr==='S'?8.5:-25};
+}
+
+scene.traverse(o=>{o.updateMatrix();o.matrixAutoUpdate=false;});   // 여기까지 만든 건물, 바닥, 장애물은 고정
+[scene,sun,sun.target,fill].forEach(o=>{o.matrixAutoUpdate=true;}); boat.matrixAutoUpdate=true; boat.children.forEach(c=>{c.matrixAutoUpdate=true;});
+
+/* ---------- 토끼 공장 ---------- */
+const inkMat=flat(INK);
+function faceTex(ink,blush,mean){return canvasTex(512,384,g=>{
+  [[100,238],[412,238]].forEach(([x,y])=>{g.save();g.translate(x,y);g.scale(1.35,1);
+    const r=g.createRadialGradient(0,0,0,0,0,62);
+    r.addColorStop(0,'rgba('+blush+',.55)');r.addColorStop(.5,'rgba('+blush+',.3)');r.addColorStop(1,'rgba('+blush+',0)');
+    g.fillStyle=r;g.fillRect(-64,-64,128,128);g.restore();});
+  g.strokeStyle=ink;g.fillStyle=ink;g.lineWidth=11;g.lineCap='round';g.lineJoin='round';
+  if(mean){ // 까만토끼: 치켜뜬 눈, 꾹 다문 입
+    g.beginPath();g.moveTo(148,122);g.lineTo(196,148);g.stroke();
+    g.beginPath();g.moveTo(364,122);g.lineTo(316,148);g.stroke();
+    g.beginPath();g.arc(176,160,10,0,7);g.fill();g.beginPath();g.arc(336,160,10,0,7);g.fill();
+    g.beginPath();g.moveTo(232,224);g.quadraticCurveTo(256,200,280,224);g.stroke();
+  }else{
+    g.beginPath();g.moveTo(152,124);g.lineTo(188,142);g.lineTo(152,160);g.stroke();
+    g.beginPath();g.moveTo(360,124);g.lineTo(324,142);g.lineTo(360,160);g.stroke();
+    g.beginPath();g.moveTo(238,212);g.bezierCurveTo(236,264,276,264,274,212);g.closePath();g.fillStyle='#f4a3b3';g.fill();g.stroke();
+    g.beginPath();g.moveTo(224,202);g.quadraticCurveTo(241,222,256,204);g.quadraticCurveTo(271,222,288,202);g.stroke();
+  }
+});}
+// 머리: 한 덩어리를 찹쌀떡처럼 빚는다. 위는 둥근 돔, 아래로 갈수록 넓어지고 앞쪽 아래에 볼살이 불룩하다.
+function mold(geo,grow,list){
+  const P=geo.attributes.position, n=P.count, base=new Float32Array(n*3), wl=new Float32Array(n), wr=new Float32Array(n);
+  for(let i=0;i<n;i++){
+    const x=P.getX(i),y=P.getY(i),z=P.getZ(i);
+    const w=Math.exp(-Math.pow((y+0.46)/0.34,2)), top=y>0?0.12*y:0;
+    const dl=(x+0.6)*(x+0.6)+(y+0.42)*(y+0.42)+(z-0.62)*(z-0.62), dr=(x-0.6)*(x-0.6)+(y+0.42)*(y+0.42)+(z-0.62)*(z-0.62);
+    const b=0.12*(Math.exp(-dl/0.16)+Math.exp(-dr/0.16));
+    const X=x*0.6*(1+0.22*w-top)*(1+b), Y=y*(y<0?0.48:0.56)*(1+b*0.3), Z=z*0.55*((z>0?1+0.17*w:1+0.04*w)-top)*(1+b);
+    base[i*3]=X*grow;base[i*3+1]=Y*grow;base[i*3+2]=Z*grow;
+    wl[i]=Math.exp(-dl/0.3);wr[i]=Math.exp(-dr/0.3);
+    P.setXYZ(i,base[i*3],base[i*3+1],base[i*3+2]);
+  }
+  list.push({P,base,wl,wr,n}); return geo;
+}
+const HEAD_Y=1.0, PIV=0.8;
+const earG=new T.LatheGeometry([[0.135,0],[0.15,0.2],[0.155,0.45],[0.145,0.53],[0.11,0.6],[0.06,0.64],[0,0.655]].map(q=>new T.Vector2(q[0],q[1])),18);
+// 공격 범위: 앞쪽 부채꼴. 반지름 = 팔 뻗은 거리 + 당근 길이
+const REACH=1.8, FAN=1.22;
+const fanG=new T.CircleGeometry(REACH,28,-Math.PI/2-FAN,FAN*2);
+
+const faceCache={};
+function faceOf(o){const k=o.ink+o.blush+(o.mean?1:0);return faceCache[k]||(faceCache[k]=faceTex(o.ink,o.blush,o.mean));}
+function makeBunny(o){
+  const fur=flat(o.fur), lm=new T.MeshBasicMaterial({color:o.line,side:T.BackSide});
+  const part=(rx,ry,rz)=>{const m=new T.Mesh(SPH,fur);m.scale.set(rx,ry,rz);const t=0.028,l=new T.Mesh(SPH,lm);l.scale.set(1+t/rx,1+t/ry,1+t/rz);m.add(l);return m;};
+  const root=new T.Group(); scene.add(root);
+  const spin=new T.Group(); spin.position.y=PIV; root.add(spin);
+  const bod=new T.Group(); bod.position.y=-PIV; spin.add(bod);
+  bod.add(at(part(0.42,0.38,0.38),0,0.4,0));
+  bod.add(at(part(0.13,0.13,0.13),0,0.36,-0.38));
+  const soft=[];
+  const headG=mold(new T.SphereGeometry(1,o.lite?30:48,o.lite?22:36),1,soft);
+  const head=new T.Mesh(headG,fur); at(head,0,HEAD_Y,0); bod.add(head);
+  const hl=new T.Mesh(headG,lm); hl.scale.setScalar(1.045); head.add(hl);
+  head.add(new T.Mesh(mold(new T.SphereGeometry(1,o.lite?26:40,o.lite?18:28,Math.PI/2-0.9,1.8,Math.PI/2-0.45,1.3),1.012,soft),
+    new T.MeshBasicMaterial({map:faceOf(o),transparent:true,depthWrite:false})));
+  const ears=[-1,1].map(s=>{
+    const p=new T.Group(); at(p,s*0.21,HEAD_Y+0.42,-0.04);
+    const m=new T.Mesh(earG,fur); m.scale.z=0.85;
+    const l=new T.Mesh(earG,lm); l.scale.set(1.2,1.045,1.22); l.position.y=-0.02; m.add(l);
+    p.add(m); bod.add(p);
+    return {p,side:s,a:spring(),b:spring(),z:spring()};
+  });
+  const feet=[-1,1].map(s=>{const f=at(part(0.2,0.15,0.22),s*0.2,0.12,0.06);bod.add(f);return f;});
+  const armL=at(part(0.13,0.13,0.13),-0.46,0.52,0.12); bod.add(armL);
+  const arm=new T.Group(); at(arm,0.46,0.52,0.12); bod.add(arm);
+  arm.add(part(0.13,0.13,0.13));
+  const carM=new T.Mesh(carG,flat(0xff8a2a));
+  const carL=new T.Mesh(carG,lineMat); carL.scale.set(1.15,1.035,1.15); carL.position.y=-0.022; carM.add(carL);
+  arm.add(carM);
+  [[-0.09,0.45],[0.09,-0.45],[0,0]].forEach(([x,r])=>{
+    const l=blob(0.06,0.2,0.05,0x7cc47a,0.024); at(l,x,1.26-Math.abs(r)*0.06,0); l.rotation.z=-r; arm.add(l);
+  });
+  [0.4,0.6,0.82].forEach((y,i)=>{const m=dot(0.055,0.009,0.012,flat(0xe06a12));at(m,(i%2?-1:1)*0.04,y,0.078+y*0.128);arm.add(m);});
+  const shadow=new T.Mesh(new T.CircleGeometry(0.55,24),flat(INK,0.16)); shadow.rotation.x=-Math.PI/2; shadow.position.y=0.02; scene.add(shadow);
+  const fan=new T.Group(), fm=new T.Mesh(fanG,flat(o.fan,0.3)); fm.rotation.x=-Math.PI/2; fm.material.depthWrite=false; fan.add(fm); fan.visible=false; fan.position.y=0.03; scene.add(fan);
+  root.position.set(o.x,0,o.z); root.scale.setScalar(o.scale||1); shadow.position.set(o.x,0.02,o.z); shadow.scale.setScalar(o.scale||1);
+  const lines=[],casters=[];
+  root.traverse(m=>{if(!m.isMesh)return;if(m.material===lm||m.material===lineMat)lines.push(m);else if(m.material.isMeshStandardMaterial)casters.push(m);});
+  return {lines,casters,lod:0,still:false,o,enemy:!!o.mean,quiet:!o.hero,ai:!o.hero,team:o.team||'v',shootT:0,sawT:0,ride:null,ramT:0,sc:o.scale||1,home:{x:o.x,z:o.z},camp:o.camp||'',alert:0,aggro:o.aggro||10,gone:false,root,spin,bod,fur,soft,ears,feet,arm,armL,shadow,fan,fanMat:fm.material,
+    cheeks:[-1,1].map(s=>({s:spring(),k:95+s*12})),
+    speed:o.speed,wind:o.wind,dmg:o.dmg,
+    vx:0,vz:0,kx:0,kz:0,face:o.face||0,phase:0,lastBeat:0,swing:-1,hitDone:false,jy:0,jv:0,air:false,land:0,
+    roll:-1,rdx:0,rdz:1,dash:-1,ddx:0,ddz:1,dashHit:[],blocked:0,hp:o.hp||100,hpMax:o.hp||100,sta:100,rest:9,noSta:0,hurt:0,dead:0,dt:0,fanT:0,twitch:2,
+    mode:'chase',think:0,cool:2.5,side:1,dodged:false};
+}
+const player=makeBunny({hero:true,team:'p',fur:0xffffff,line:INK,ink:'#5a4a42',blush:'255,178,192',hurt:0xffb3b3,fan:0xff9a3c,x:2.5,z:-8,speed:5.7,wind:0.09,dmg:20});
+const saw=(()=>{
+  const g=new T.Group(), box=(w,h,d,c,x,y,z)=>{
+    const geo=new T.BoxGeometry(w,h,d), m=new T.Mesh(geo,flat(c)), l=new T.Mesh(geo,lineMat);
+    l.scale.set(1+0.05/w,1+0.05/h,1+0.05/d); m.add(l); at(m,x,y,z); g.add(m); return m;
+  };
+  box(0.34,0.36,0.3,0xf2552c,0,0.3,0);            // 몸통
+  box(0.12,0.12,0.36,0x4a3d38,0,0.5,-0.02);       // 손잡이
+  box(0.07,0.95,0.2,0xd9dde3,0,0.95,0);           // 톱날
+  const teeth=[];
+  for(let i=0;i<7;i++)[-1,1].forEach(sd=>{const t=dot(0.03,0.04,0.03,inkMat);at(t,0,0.56+i*0.13,sd*0.115);g.add(t);teeth.push(t);});
+  g.children[2].material.metalness=0.9;g.children[2].material.roughness=0.25;g.children[2].material.envMapIntensity=1.2;   // 번쩍이는 톱날
+  g.visible=false; player.arm.add(g);
+  return {g,teeth,parts:player.arm.children.filter((c,i)=>i>0&&c!==g)};
+})();
+// 마을 토끼(평화롭게 산책)와 경찰 토끼(수배되면 경찰차를 타고 온다)
+const FURS=[[0xffffff,0xffb3b3],[0xfff1d6,0xffc9a0],[0xffe1ea,0xff9fb8],[0xe9e6ee,0xc9b8d8],[0xd9b38c,0xffd0b0],[0xdff0ff,0xa8c8f0]];
+const VBASE={line:INK,ink:'#5a4a42',blush:'255,178,192',fan:0xff9a3c,lite:true,team:'v',hp:30,speed:2.0,wind:0.3,dmg:0};
+const GBASE={fur:0x5b6ea8,line:0x2c3557,ink:'#fff4ee',blush:'255,160,180',hurt:0xb9c4ea,fan:0x5b6ea8,mean:true,lite:true,team:'g',hp:60,speed:4.3,wind:0.5,dmg:10};
+const HOMES=[[-4,-10],[3,-9],[-2,-6],[5,-4.5],[0,-12],[-5,-4],[4,-11],[-1,0],[-12,9],[10,12],[-20,14],[18,8],[-30,10],[34,12],[42,8],[-42,13],[0,-25],[-12,-27],[14,-24],[2,12]];
+const enemies=[], bunnies=[player];
+const hostile=(a,b)=>(a.team==='p')!==(b.team==='p');
+function addNpc(def,x,z){
+  const e=makeBunny(Object.assign({},def,{x,z}));shade(e.root);
+  e.box=document.createElement('div');e.box.className='track ehp';e.box.hidden=true;
+  e.fill=document.createElement('i');e.box.appendChild(e.fill);document.body.appendChild(e.box);
+  e.side=Math.random()<0.5?-1:1;e.cool=1+Math.random();e.wt=Math.random()*3;e.tx=x;e.tz=z;e.idle=true;
+  enemies.push(e);bunnies.push(e);return e;
+}
+let vIdx=0;
+function addVillager(){
+  const h=HOMES[vIdx%HOMES.length],f=FURS[vIdx%FURS.length];vIdx++;
+  const v=addNpc(Object.assign({},VBASE,{fur:f[0],hurt:f[1],face:Math.random()*6.28}),h[0],h[1]);
+  v.arm.children.forEach((c,i)=>{if(i>0)c.visible=false;});   // 마을 토끼는 몽둥이를 들지 않는다
+  return v;
+}
+for(let i=0;i<20;i++)addVillager();
+
+// 체력을 채워 주는 당근
+const pickups=PICK.map(([x,z])=>{
+  const g=new T.Group(), m=new T.Mesh(carG,flat(0xff8a2a)), l=new T.Mesh(carG,lineMat);
+  l.scale.set(1.15,1.035,1.15); l.position.y=-0.022; m.add(l); g.add(m);
+  g.add(at(blob(0.07,0.2,0.06,0x7cc47a,0.024),0,1.26,0));
+  g.scale.setScalar(0.55); g.position.set(x,0.3,z); scene.add(g);
+  return {g,x,z,off:0};
+});
+// 당근 기관총의 총알
+const bullets=[];
+for(let i=0;i<40;i++){
+  const g=new T.Group(), m=new T.Mesh(carG,flat(0xff8a2a)); m.rotation.x=-Math.PI/2; m.scale.setScalar(0.42); g.add(m);
+  g.visible=false; scene.add(g); bullets.push({g,life:0,dx:0,dz:1});
+}
+
+/* ---------- 당근 오토바이 ---------- */
+const BIKE_SP=11.5, SEAT=0.7;
+const bike=(()=>{
+  const g=new T.Group(), cream=flat(0xfff3e2);
+  const body=new T.Mesh(carG,flat(0xff8a2a)), bl=new T.Mesh(carG,lineMat);
+  bl.scale.set(1.15,1.035,1.15); bl.position.y=-0.022; body.add(bl);
+  body.scale.set(1.9,1.75,1.9); body.rotation.x=-Math.PI/2; body.position.set(0,0.62,1.0); g.add(body);   // 뾰족한 쪽이 앞
+  [[-0.16,0.66,-1.2,0.5],[0.16,0.66,-1.2,-0.5],[0,0.84,-1.25,0]].forEach(([x,y,z,r])=>{const l=blob(0.1,0.1,0.32,0x7cc47a,0.03);at(l,x,y,z);l.rotation.y=r;g.add(l);});
+  const wheels=[0.55,-0.62].map(z=>{
+    const w=new T.Group(); at(w,0,0.36,z);
+    const wg=new T.CylinderGeometry(0.36,0.36,0.22,22), t=new T.Mesh(wg,flat(0x4a3d38)); t.rotation.z=Math.PI/2; w.add(t);
+    [-0.12,0.12].forEach(x=>w.add(at(dot(0.02,0.27,0.07,cream),x,0,0)));
+    g.add(w); return w;
+  });
+  const bar=new T.Mesh(new T.CylinderGeometry(0.04,0.04,0.9,8),flat(INK)); bar.rotation.z=Math.PI/2; at(bar,0,1.08,0.5); g.add(bar);
+  g.add(at(new T.Mesh(new T.CylinderGeometry(0.035,0.035,0.4,8),flat(INK)),0,0.9,0.5));
+  g.add(at(dot(0.11,0.11,0.06,cream),0,0.7,1.02));
+  g.position.set(5.2,0,2.2); g.rotation.set(0,2.4,0.2); scene.add(g);
+  return {g,wheels,face:2.4,sp:0,turn:0,put:0,gore:0};
+})();
+function toggleRide(){
+  const R=player.root.position,B=bike.g.position;
+  if(player.ride){   // 내리기
+    player.ride=null;bike.sp=0;bike.turn=0;
+    B.y=floorAt(B.x,B.z,player.jy);bike.g.rotation.set(0,bike.face,0.2);
+    R.x+=Math.cos(bike.face)*1.2;R.z-=Math.sin(bike.face)*1.2;sfx('land');
+  }else if(player.dead<=0&&Math.hypot(R.x-B.x,R.z-B.z)<2.6){   // 타기
+    bike.face=bike.g.rotation.y;bike.sp=0;player.ride=bike;player.roll=player.dash=player.swing=-1;
+    R.x=B.x;R.z=B.z;player.face=bike.face;sfx('jump');
+  }
+}
+
+/* ---------- 피: 튀는 방울과 바닥에 남는 자국 ---------- */
+const bloodMat=new T.MeshStandardMaterial({color:0xc8102e,roughness:0.12,envMapIntensity:0.9}), stainMat=new T.MeshStandardMaterial({color:0xd4132f,roughness:0.08,envMapIntensity:1.1,transparent:true,opacity:0.9,depthWrite:false});
+const drops=[], stains=[], stainG=new T.CircleGeometry(1,14);
+for(let i=0;i<110;i++){const m=new T.Mesh(SPH,bloodMat);m.visible=false;scene.add(m);drops.push({m,life:0,vx:0,vy:0,vz:0});}
+for(let i=0;i<160;i++){const m=new T.Mesh(stainG,stainMat);m.rotation.x=-Math.PI/2;m.visible=false;m.renderOrder=1;m.receiveShadow=true;scene.add(m);stains.push(m);}
+let stainI=0,dropI=0;
+function stain(x,z,r){
+  if(Math.hypot(x,z)>ARENA+1.5||overWater(x,z))return;   // 물에 떨어진 피는 남지 않는다
+  const m=stains[stainI];stainI=(stainI+1)%stains.length;
+  m.position.set(x,0.014+stainI*0.00004,z);m.scale.set(r*(0.8+Math.random()*0.5),r*(0.8+Math.random()*0.5),1);m.rotation.z=Math.random()*6.28;m.visible=true;
+}
+function bleed(x,y,z,dx,dz,n,force){
+  for(let i=0;i<n;i++){
+    const d=drops[dropI];dropI=(dropI+1)%drops.length;
+    const a=Math.random()*6.283,sp=Math.random()*force;
+    d.vx=dx*force*0.8+Math.cos(a)*sp;d.vz=dz*force*0.8+Math.sin(a)*sp;d.vy=2+Math.random()*4.5;
+    d.life=1.6;d.m.position.set(x,y,z);d.m.scale.setScalar(0.05+Math.random()*0.08);d.m.visible=true;
+  }
+}
+function bloodTick(dt){
+  for(const d of drops){
+    if(d.life<=0)continue;
+    d.life-=dt;d.vy-=19*dt;
+    const p=d.m.position;p.x+=d.vx*dt;p.y+=d.vy*dt;p.z+=d.vz*dt;
+    if(p.y<=0.03||d.life<=0){d.life=0;d.m.visible=false;if(p.y<=0.03)stain(p.x,p.z,0.1+Math.random()*0.22);}
+  }
+}
+
+/* ---------- 전기톱에 당하면 머리, 귀, 몸통, 팔다리가 따로 떨어져 날아간다 ---------- */
+const gibs=[]; let sawKill=false;
+function gib(o,h){
+  const R=o.root.position;
+  o.root.updateMatrixWorld(true);
+  o.bod.children.slice().forEach(c=>{
+    scene.attach(c);   // 지금 보이는 자리와 크기 그대로 떼어 낸다
+    const a=Math.random()*6.283,sp=1.5+Math.random()*4;
+    gibs.push({m:c,vx:h.dx*3+Math.cos(a)*sp,vy:3.5+Math.random()*5,vz:h.dz*3+Math.sin(a)*sp,
+      rx:(Math.random()-0.5)*14,rz:(Math.random()-0.5)*14,life:5,rad:0.16*o.sc,sc:c.scale.x,drip:0});
+  });
+  bleed(R.x,o.jy+0.8*o.sc,R.z,h.dx,h.dz,34,6.5);
+  for(let i=0;i<4;i++)stain(R.x+(Math.random()-0.5)*1.6,R.z+(Math.random()-0.5)*1.6,0.35+Math.random()*0.4);
+  o.dead=0.3;
+  while(gibs.length>90){scene.remove(gibs[0].m);gibs.shift();}
+}
+function gibTick(dt){
+  for(let i=gibs.length-1;i>=0;i--){
+    const g=gibs[i],p=g.m.position;
+    g.life-=dt;g.vy-=19*dt;
+    p.x+=g.vx*dt;p.y+=g.vy*dt;p.z+=g.vz*dt;
+    g.m.rotation.x+=g.rx*dt;g.m.rotation.z+=g.rz*dt;
+    g.drip-=dt; if(p.y>0.4&&g.drip<=0){g.drip=0.12;bleed(p.x,p.y,p.z,0,0,1,0.6);}   // 날아가면서 피를 흘린다
+    if(p.y<g.rad){
+      p.y=g.rad;
+      if(g.vy<-1.5)stain(p.x,p.z,0.2+Math.random()*0.2);
+      g.vy=g.vy<-1.5?-g.vy*0.35:0;g.vx*=0.6;g.vz*=0.6;g.rx*=0.5;g.rz*=0.5;
+    }
+    if(g.life<0.6){const k=Math.max(0.001,g.life/0.6)*g.sc;g.m.scale.multiplyScalar(k/g.m.scale.x);}
+    if(g.life<=0){scene.remove(g.m);gibs.splice(i,1);}
+  }
+}
+
+/* ---------- 연습용 순무 ---------- */
+const turnips=[[-14,7],[16,15.6],[-26,15.6]].map(([x,z])=>{
+  const g=new T.Group(), tip=new T.Group(); g.add(tip); at(g,x,0,z);
+  tip.add(at(blob(0.45,0.42,0.45,0xfaf3ff),0,0.42,0));
+  tip.add(at(dot(0.44,0.2,0.44,flat(0xd9b8f0,0.8)),0,0.66,0));
+  tip.add(at(dot(0.04,0.05,0.02,inkMat),-0.14,0.45,0.43));
+  tip.add(at(dot(0.04,0.05,0.02,inkMat),0.14,0.45,0.43));
+  [-0.4,0,0.4].forEach(r=>{const l=blob(0.08,0.24,0.05,0x7cc47a,0.022);at(l,r*0.3,1.0,0);l.rotation.z=-r;tip.add(l);});
+  scene.add(g);
+  return {g,tip,s:spring(),vx:0,vz:0,axis:new T.Vector3(1,0,0)};
+});
+
+/* ---------- 입력 ---------- */
+let ix=0,iy=0,wantHit=false,wantJump=false,wantRoll=false,wantDash=false;
+const keys={}, $=id=>document.getElementById(id);
+const stick=$('stick'),knob=$('knob');
+let sid=null;
+function stickMove(e){
+  const r=stick.getBoundingClientRect(),R=r.width/2;
+  let dx=e.clientX-(r.left+R),dy=e.clientY-(r.top+R);const d=Math.hypot(dx,dy),m=R-14;
+  if(d>m){dx*=m/d;dy*=m/d;}
+  knob.style.transform='translate('+dx+'px,'+dy+'px)'; ix=dx/m; iy=dy/m;
+}
+stick.addEventListener('pointerdown',e=>{sid=e.pointerId;try{stick.setPointerCapture(sid);}catch(_){ }stickMove(e);e.preventDefault();});
+stick.addEventListener('pointermove',e=>{if(e.pointerId===sid)stickMove(e);});
+function stickEnd(e){if(e.pointerId!==sid)return;sid=null;ix=iy=0;knob.style.transform='';}
+stick.addEventListener('pointerup',stickEnd);stick.addEventListener('pointercancel',stickEnd);
+// 시야: 빈 화면을 끌면 카메라가 토끼 둘레를 돈다
+let camYaw=0.75,camPitch=0.16,lookId=null,lx=0,ly=0,lookT=0;
+canvas.addEventListener('pointerdown',e=>{if(lookId!==null)return;lookId=e.pointerId;lx=e.clientX;ly=e.clientY;try{canvas.setPointerCapture(lookId);}catch(_){ }});
+canvas.addEventListener('pointermove',e=>{
+  if(e.pointerId!==lookId)return;
+  lookT=1.5;camYaw-=(e.clientX-lx)*0.006;camPitch=Math.max(0.08,Math.min(1.25,camPitch+(e.clientY-ly)*0.004));lx=e.clientX;ly=e.clientY;
+});
+const lookEnd=e=>{if(e.pointerId===lookId)lookId=null;};
+canvas.addEventListener('pointerup',lookEnd);canvas.addEventListener('pointercancel',lookEnd);
+const fireBtn=$('fire');
+fireBtn.addEventListener('pointerdown',e=>{firing=true;try{fireBtn.setPointerCapture(e.pointerId);}catch(_){ }e.preventDefault();});
+['pointerup','pointercancel','lostpointercapture'].forEach(t=>fireBtn.addEventListener(t,()=>{firing=false;}));
+const sawBtn=$('saw');
+// 전기톱은 한 번 누르면 켜지고, 다시 누르면 꺼진다
+function setSaw(on){sawing=on;sawBtn.classList.toggle('on',on);sawBtn.setAttribute('aria-pressed',String(on));sawBtn.textContent=on?'톱 끄기':'전기톱';}
+sawBtn.addEventListener('pointerdown',e=>{setSaw(!sawing);e.preventDefault();});
+sawBtn.addEventListener('keydown',e=>{if(e.key==='Enter')setSaw(!sawing);});
+const acts={ride:()=>toggleRide(),hit:()=>{wantHit=true;},jump:()=>{wantJump=true;},roll:()=>{wantRoll=true;},dash:()=>{wantDash=true;}}, keyOf={f:'ride',h:'hit',' ':'jump',k:'roll',shift:'roll',l:'dash'};
+Object.keys(acts).forEach(id=>{
+  const b=$(id);
+  b.addEventListener('pointerdown',e=>{acts[id]();e.preventDefault();});
+  b.addEventListener('keydown',e=>{if(e.key==='Enter')acts[id]();});
+});
+window.addEventListener('keydown',e=>{
+  const k=e.key.toLowerCase();
+  if(k==='j'){firing=true;fireBtn.classList.add('on');return;}
+  if(k==='g'){if(!e.repeat)setSaw(!sawing);return;}
+  if(keyOf[k]){if(!e.repeat)acts[keyOf[k]]();$(keyOf[k]).classList.add('on');if(k===' ')e.preventDefault();return;}
+  if(['w','a','s','d','q','e','arrowup','arrowdown','arrowleft','arrowright'].includes(k)){keys[k]=true;e.preventDefault();}
+});
+window.addEventListener('keyup',e=>{const k=e.key.toLowerCase();keys[k]=false;if(k==='j'){firing=false;fireBtn.classList.remove('on');}if(keyOf[k])$(keyOf[k]).classList.remove('on');});
+
+/* ---------- 소리: 전부 그 자리에서 합성한다. 첫 터치 뒤에 켜진다 ---------- */
+let AC=null,master=null,musicG=null,noiseBuf=null,muted=false,nextNote=0,noteI=0;
+function audioStart(){
+  if(AC){if(AC.state==='suspended')AC.resume();return;}
+  const C=window.AudioContext||window.webkitAudioContext; if(!C)return;
+  try{AC=new C();}catch(e){AC=null;return;}
+  master=AC.createGain();master.gain.value=muted?0:0.9;master.connect(AC.destination);
+  musicG=AC.createGain();musicG.gain.value=0.5;musicG.connect(master);
+  noiseBuf=AC.createBuffer(1,AC.sampleRate*0.5,AC.sampleRate);
+  const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  nextNote=AC.currentTime+0.15;
+}
+function tone(f0,dur,type,vol,f1,dest,when){
+  if(!AC)return;
+  const t=when||AC.currentTime,o=AC.createOscillator(),g=AC.createGain();
+  o.type=type;o.frequency.setValueAtTime(f0,t);if(f1)o.frequency.exponentialRampToValueAtTime(f1,t+dur);
+  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+0.008);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g);g.connect(dest||master);o.start(t);o.stop(t+dur+0.03);
+}
+function noise(dur,vol,f0,f1,dest,when){
+  if(!AC)return;
+  const t=when||AC.currentTime,n=AC.createBufferSource(),bp=AC.createBiquadFilter(),g=AC.createGain();
+  n.buffer=noiseBuf;bp.type='bandpass';bp.Q.value=1.2;bp.frequency.setValueAtTime(f0,t);if(f1)bp.frequency.exponentialRampToValueAtTime(f1,t+dur);
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  n.connect(bp);bp.connect(g);g.connect(dest||master);n.start(t);n.stop(t+dur+0.03);
+}
+function sfx(name,quiet){
+  if(!AC)return;
+  const v=quiet?0.3:1;
+  switch(name){
+    case 'step': tone(quiet?330:560+Math.random()*90,0.07,'sine',0.13*v,quiet?220:330);break;      // 뽁 뽁 발걸음
+    case 'jump': tone(380,0.18,'triangle',0.2*v,860);break;                                        // 뿅
+    case 'land': tone(300,0.12,'sine',0.22*v,140);noise(0.06,0.08*v,500);break;                    // 폭신
+    case 'roll': tone(320,0.3,'triangle',0.13*v,640);tone(480,0.3,'sine',0.07*v,240);break;        // 데구르르
+    case 'dash': noise(0.3,0.22*v,900,3200);tone(420,0.26,'sawtooth',0.06*v,1200);break;           // 슈웅
+    case 'swing': noise(0.14,0.2*v,2400,700);break;                                                // 휙
+    case 'hit': tone(240,0.13,'square',0.13,90);noise(0.09,0.25,900);tone(900,0.06,'sine',0.1,1300);break; // 퍽
+    case 'ouch': tone(620,0.22,'square',0.12,210);noise(0.1,0.18,600);break;
+    case 'dodge': tone(900,0.09,'sine',0.13,1500);break;
+    case 'no': tone(170,0.08,'square',0.07);break;
+    case 'shot': tone(950,0.05,'square',0.05,320);noise(0.04,0.1,2600);break;                            // 타타타
+    case 'alarm': [880,660,880,660].forEach((f,i)=>tone(f,0.14,'square',0.07,0,master,AC.currentTime+i*0.15));break;
+    case 'saw': tone(95+Math.random()*25,0.12,'sawtooth',0.11,80);noise(0.1,0.09,1800,2600);break;   // 위이이잉
+    case 'splat': noise(0.16,0.22,700,180);tone(150,0.12,'sine',0.14,60);break;
+    case 'heal': [659,880,1175].forEach((f,i)=>tone(f,0.12,'sine',0.15,0,master,AC.currentTime+i*0.07));break;
+    case 'split': tone(500,0.2,'square',0.08,180);tone(700,0.2,'square',0.06,260);break;
+    case 'win': [523,659,784,1047,1319].forEach((f,i)=>tone(f,0.22,'triangle',0.18,0,master,AC.currentTime+i*0.13));break;
+    case 'ko': [784,659,523,392].forEach((f,i)=>tone(f,0.16,'triangle',0.16,0,master,AC.currentTime+i*0.11));break;
+  }
+}
+// 배경음악: 도-라-파-솔 화음 위로 통통 튀는 가락이 계속 돈다
+const hz=m=>440*Math.pow(2,(m-69)/12);
+const TUNE=[72,76,79,76,84,79,76,79, 72,76,81,76,84,81,76,81, 72,77,81,77,84,81,77,81, 74,79,83,79,86,83,79,74,
+            79,0,76,79,84,0,79,0, 81,0,76,81,84,0,81,0, 81,0,77,81,84,0,81,0, 83,0,79,83,86,83,79,74];
+const BASS=[48,45,41,43], BEAT=0.225;
+function musicTick(){
+  if(!AC)return;
+  if(nextNote<AC.currentTime-0.1)nextNote=AC.currentTime+0.05;
+  while(nextNote<AC.currentTime+0.25){
+    const i=noteI%TUNE.length,m=TUNE[i],t=nextNote;
+    if(m)tone(hz(m),0.2,'triangle',0.2,0,musicG,t);
+    if(i%4===0)tone(hz(BASS[(i>>3)%4]+(i%8?12:0)),0.3,'sine',0.26,0,musicG,t);
+    if(i%2===1)noise(0.04,0.05,6000,0,musicG,t);
+    noteI++;nextNote+=BEAT;
+  }
+}
+const sndBtn=document.getElementById('snd');
+function setMute(m){muted=m;if(master)master.gain.value=m?0:0.9;sndBtn.textContent=m?'소리 끔':'소리 켬';sndBtn.setAttribute('aria-pressed',String(!m));}
+sndBtn.addEventListener('click',()=>{audioStart();setMute(!muted);});
+window.addEventListener('pointerdown',audioStart);
+window.addEventListener('keydown',e=>{audioStart();if(e.key.toLowerCase()==='m')setMute(!muted);});
+
+/* ---------- 전투 규칙 ---------- */
+const SPEED=4.6, ROLL_T=0.42, ROLL_SP=9.5, REST_X=0.3, REST_Z=-0.45;
+const COST={jump:18,roll:25,hit:15,dash:30}, DASH_T=0.32, DASH_SP=14, DASH_DMG=15;
+let time=0,kos=0,popT=0,popB=null;
+const nEl=$('n'),hpEl=$('hp'),staEl=$('sta'),staTrack=$('staT'),popEl=$('pop');
+
+function spend(b,c){if(b.sta<c){b.noSta=0.35;if(!b.quiet)sfx('no');return false;}b.sta-=c;b.rest=0;return true;}
+function boing(b,k){
+  b.ears.forEach(e=>{e.a.v+=5*k*(1+e.side*0.2);e.b.v+=9*k;e.z.v+=3*k;});
+  b.cheeks.forEach(c=>{c.s.v-=1.1*k;});
+}
+function pop(text,b){if(text==='회피!')sfx('dodge');popEl.textContent=text;popT=0.7;popB=b;}
+function respawn(b){
+  b.hp=b.hpMax;b.sta=100;b.dead=0;b.dash=-1;b.vx=b.vz=b.kx=b.kz=0;b.jy=0;b.air=false;b.swing=-1;b.roll=-1;
+  b.spin.rotation.set(0,0,0);b.spin.position.y=PIV;b.spin.scale.setScalar(1);
+  b.root.position.set(2.5,0,-8);heat=0;
+  enemies.forEach(e=>{if(e.team==='g'){e.gone=true;e.silent=true;}});
+  cars.forEach(c=>{if(c.state!=='idle'){c.state='home';c.load=0;c.t=0;}});
+  toast('기절했다 깨어났어요');
+}
+function hurt(o,b,h,dmg){
+  o.hp=Math.max(0,o.hp-(dmg||b.dmg));o.hurt=0.22;o.kx=h.dx*7;o.kz=h.dz*7;o.swing=-1;o.alert=10;boing(o,2.2);sfx(o===player?'ouch':'hit');
+  { const R=o.root.position,big=(dmg||b.dmg)>=12;
+    bleed(R.x,o.jy+0.8*o.sc,R.z,h.dx,h.dz,big?12:6,big?4.5:3);
+    if(o.hp<=0){bleed(R.x,o.jy+0.8*o.sc,R.z,h.dx,h.dz,22,5.5);stain(R.x,R.z,0.75*o.sc);stain(R.x+h.dx*0.7,R.z+h.dz*0.7,0.5*o.sc);sfx('splat');} }
+  if(b===player){
+    trouble(0.15);
+    enemies.forEach(e=>{if(e.team==='v'&&Math.hypot(e.root.position.x-o.root.position.x,e.root.position.z-o.root.position.z)<12)e.alert=Math.max(e.alert,8);});
+  }
+  if(o.hp<=0){
+    if(o.ride)toggleRide();
+    o.dead=o===player?2.6:1.8;o.dt=0;o.roll=-1;o.air=false;o.jv=0;
+    if(o!==player){kos++;nEl.textContent=kos;if(b===player)trouble(o.team==='g'?1.5:1);}
+    pop('KO!',o);sfx('ko');
+    if(sawKill&&o!==player)gib(o,h);
+  }
+}
+// 당근이 지나간 선이 아니라, 앞쪽 부채꼴 전체가 맞는 범위
+function strike(b){
+  const R=b.root.position,fx=Math.sin(b.face),fz=Math.cos(b.face);
+  b.fanT=0.25;sfx('swing',b.quiet);
+  const inFan=(x,z,rad)=>{
+    const dx=x-R.x,dz=z-R.z,d=Math.hypot(dx,dz);
+    if(d>REACH+rad)return null;
+    if(d>0.45&&(dx*fx+dz*fz)/d<Math.cos(FAN))return null;
+    return {dx:dx/(d||1),dz:dz/(d||1)};
+  };
+  bunnies.forEach(o=>{
+    if(o===b||o.dead>0||!hostile(b,o))return;
+    const h=inFan(o.root.position.x,o.root.position.z,0.4);
+    if(!h||Math.abs(o.jy-b.jy)>1.0)return;   // 높이 차이가 크면 닿지 않는다
+    if(o.roll>=0){pop('회피!',o);return;}   // 구르는 동안은 모든 공격을 피한다
+    sawKill=b===player&&sawing;hurt(o,b,h);sawKill=false;   // 톱을 든 채 휘두르면 톱으로 베는 것
+  });
+  if(!b.enemy&&b.jy<1.0)turnips.forEach(t=>{
+    const h=inFan(t.g.position.x,t.g.position.z,0.4);
+    if(h){t.s.v+=10;t.vx=h.dx*5;t.vz=h.dz*5;t.axis.set(h.dz,0,-h.dx);}
+  });
+}
+function springs(b,k,dt){
+  b.ears.forEach(e=>{
+    step(e.a,-0.3*k-(b.air?b.jv*0.05:0),120,4.5,dt); step(e.b,0,90,4,dt); step(e.z,0,110,5,dt);
+    e.p.rotation.x=-0.08+e.a.x; e.p.rotation.z=-e.side*(0.07+e.z.x*0.5);
+    const st=Math.max(-0.22,Math.min(0.28,e.b.x*0.25));
+    e.p.scale.set(1-st*0.5,1+st,1-st*0.5);
+  });
+  b.cheeks.forEach(c=>step(c.s,0,c.k,4.2,dt));
+  const lim=v=>Math.max(-0.12,Math.min(0.12,v)), oL=lim(b.cheeks[0].s.x), oR=lim(b.cheeks[1].s.x);
+  // 볼살이 거의 멈췄거나 멀리 있으면 꼭짓점 계산을 건너뛴다
+  const calm=b.lod>0||Math.abs(oL)+Math.abs(oR)<0.004;
+  if(calm&&b.still)return;
+  b.still=calm;
+  const qL=calm?0:oL,qR=calm?0:oR;
+  b.soft.forEach(m=>{
+    for(let i=0;i<m.n;i++){
+      const d=m.wl[i]*qL+m.wr[i]*qR, a=m.wl[i]*Math.abs(qL)+m.wr[i]*Math.abs(qR);
+      m.P.setXYZ(i,m.base[i*3]*(1+a*0.6),m.base[i*3+1]+d,m.base[i*3+2]*(1+a*0.4));
+    }
+    m.P.needsUpdate=true;
+  });
+}
+
+function updateBunny(b,c,dt){
+  const R=b.root.position;
+  if(b.hurt>0){b.hurt-=dt;b.fur.color.setHex(b.hurt>0?b.o.hurt:b.o.fur);}
+  if(b.noSta>0)b.noSta-=dt;
+  b.rest+=dt; if(b.rest>0.7)b.sta=Math.min(100,b.sta+26*dt);
+  b.fan.visible=false;
+
+  if(b.dead>0){ // 쓰러짐
+    b.dead-=dt;b.dt+=dt;
+    const u=Math.min(1,b.dt/0.3);
+    b.spin.rotation.set(0,0,u*Math.PI/2);b.spin.position.y=PIV-u*0.3;
+    R.x+=b.kx*dt;R.z+=b.kz*dt;const f=Math.exp(-6*dt);b.kx*=f;b.kz*=f;
+    pushOut(R,b.jy,BODY);
+    const df=floorAt(R.x,R.z,b.jy);
+    if(b.jy>df){b.jv-=19*dt;b.jy=Math.max(df,b.jy+b.jv*dt);}
+    R.y=b.jy;b.shadow.position.y=df+0.02;
+    springs(b,0,dt);
+    b.shadow.position.x=R.x;b.shadow.position.z=R.z;
+    if(b.jy<0.1&&Math.random()<dt*5)stain(R.x+(Math.random()-0.5)*0.9,R.z+(Math.random()-0.5)*0.9,0.2+Math.random()*0.25);   // 피 웅덩이가 번진다
+    if(b.dead<=0){if(b===player)respawn(b);else b.gone=true;}
+    return;
+  }
+
+  if(b.ride)c={mx:c.mx,mz:c.mz,jump:c.jump};   // 타고 있을 때는 운전과 점프만
+  let mx=c.mx||0,mz=c.mz||0; const ml=Math.hypot(mx,mz); if(ml>1){mx/=ml;mz/=ml;}
+  if(b.ai&&b.swing>=0){mx=0;mz=0;}
+
+  // 구르기: 시작부터 끝까지 무적
+  if(c.roll&&b.roll<0&&!b.air&&spend(b,COST.roll)){
+    b.roll=0;b.swing=-1;b.dash=-1;
+    if(ml>0.2){b.rdx=mx/Math.min(1,ml);b.rdz=mz/Math.min(1,ml);const l=Math.hypot(b.rdx,b.rdz);b.rdx/=l;b.rdz/=l;}
+    else{b.rdx=Math.sin(b.face);b.rdz=Math.cos(b.face);}
+    b.face=Math.atan2(b.rdx,b.rdz);boing(b,1.2);sfx('roll',b.quiet);
+  }
+  if(b.roll>=0){
+    b.roll+=dt;const u=b.roll/ROLL_T,s=ROLL_SP*(1-0.45*u);
+    b.vx=b.rdx*s;b.vz=b.rdz*s;
+    if(u>=1){b.roll=-1;b.vx*=0.4;b.vz*=0.4;boing(b,1.3);b.land=0.12;}
+  }
+  // 돌진: 보고 있는 방향으로 곧게 튀어 나가며 부딪힌 상대를 날려 보낸다
+  if(c.dash&&b.dash<0&&b.roll<0&&spend(b,COST.dash)){
+    b.dash=0;b.swing=-1;b.ddx=Math.sin(b.face);b.ddz=Math.cos(b.face);b.dashHit=[];boing(b,-1.5);sfx('dash',b.quiet);
+  }
+  if(b.roll>=0){}
+  else if(b.dash>=0){
+    b.dash+=dt;const u=b.dash/DASH_T,s=DASH_SP*(1-0.3*u);
+    b.vx=b.ddx*s;b.vz=b.ddz*s;
+    bunnies.forEach(o=>{
+      if(o===b||o.dead>0||!hostile(b,o)||b.dashHit.includes(o))return;
+      const dx=o.root.position.x-R.x,dz=o.root.position.z-R.z;
+      if(Math.hypot(dx,dz)>1.1||Math.abs(o.jy-b.jy)>1.0)return;
+      b.dashHit.push(o);
+      if(o.roll>=0){pop('회피!',o);return;}
+      sawKill=b===player&&sawing;hurt(o,b,{dx:b.ddx,dz:b.ddz},DASH_DMG);sawKill=false;o.kx=b.ddx*11;o.kz=b.ddz*11;
+    });
+    if(!b.enemy&&b.jy<1.0)turnips.forEach(t=>{
+      const dx=t.g.position.x-R.x,dz=t.g.position.z-R.z;
+      if(Math.hypot(dx,dz)<1.0&&!b.dashHit.includes(t)){b.dashHit.push(t);t.s.v+=12;t.vx=b.ddx*8;t.vz=b.ddz*8;t.axis.set(b.ddz,0,-b.ddx);}
+    });
+    if(u>=1){b.dash=-1;b.vx*=0.3;b.vz*=0.3;boing(b,1.5);}
+  }else if(b.ride){   // 오토바이: 스틱 방향으로 서서히 꺾으며 달린다
+    const bk=b.ride;
+    if(ml>0.15){
+      let d=Math.atan2(mx,mz)-bk.face;d=Math.atan2(Math.sin(d),Math.cos(d));
+      const t=Math.max(-3.4*dt,Math.min(3.4*dt,d));
+      bk.face+=t;bk.turn+=(t/dt-bk.turn)*0.2;
+      bk.sp+=(Math.min(1,ml)*BIKE_SP*(Math.abs(d)>2?0.4:1)-bk.sp)*(1-Math.exp(-2.2*dt));
+    }else{bk.sp*=Math.exp(-1.6*dt);bk.turn*=0.85;}
+    if(b.blocked)bk.sp*=0.6;
+    b.vx=Math.sin(bk.face)*bk.sp;b.vz=Math.cos(bk.face)*bk.sp;b.face=bk.face;
+  }else{
+    const ease=1-Math.exp(-10*dt);
+    b.vx+=(mx*b.speed-b.vx)*ease;b.vz+=(mz*b.speed-b.vz)*ease;
+  }
+  const sp=Math.hypot(b.vx,b.vz),k=Math.min(1,sp/SPEED);
+  R.x+=(b.vx+b.kx)*dt;R.z+=(b.vz+b.kz)*dt;
+  const kf=Math.exp(-7*dt);b.kx*=kf;b.kz*=kf;
+  const pr=Math.hypot(R.x,R.z); if(pr>ARENA){R.x*=ARENA/pr;R.z*=ARENA/pr;}
+  const blk=pushOut(R,b.jy,BODY); b.blocked=blk?blk.h:0;
+  if(b.roll<0&&b.dash<0&&!b.ride){
+    let tg=null; if(c.aim!==undefined)tg=c.aim; else if(sp>0.3)tg=Math.atan2(b.vx,b.vz);
+    if(tg!==null){let d=tg-b.face;d=Math.atan2(Math.sin(d),Math.cos(d));b.face+=d*(1-Math.exp(-14*dt));}
+  }
+  b.root.rotation.y=b.face;
+
+  // 깡총깡총
+  const rolling=b.roll>=0, dashing=b.dash>=0||!!b.ride;
+  if(!rolling&&!dashing)b.phase+=sp*dt*2.5;
+  const beat=Math.floor(b.phase/Math.PI);
+  if(beat!==b.lastBeat){b.lastBeat=beat;if(k>0.2&&!b.air){boing(b,k);if(b===player||Math.hypot(R.x-player.root.position.x,R.z-player.root.position.z)<7)sfx('step',b.quiet);}}
+  const hop=(rolling||dashing)?0:Math.abs(Math.sin(b.phase))*k, breathe=Math.sin(time*2.4+(b.enemy?1:0))*0.015;
+
+  // 점프
+  const fl=floorAt(R.x,R.z,b.jy);
+  if(c.jump&&!b.air&&!rolling&&spend(b,COST.jump)){b.air=true;b.jv=7.2;boing(b,-0.8);sfx('jump',b.quiet);}
+  if(!b.air&&b.jy>fl+0.02){b.air=true;b.jv=0;}   // 가장자리에서 걸어 나가면 떨어진다
+  if(b.air){
+    b.jv-=19*dt;b.jy+=b.jv*dt;
+    if(b.jv<=0&&b.jy<=fl){b.jy=fl;b.air=false;boing(b,1.6+Math.min(1,-b.jv/8));b.land=0.22;b.jv=0;sfx('land',b.quiet);}
+  }else b.jy=fl;
+  if(b.land>0)b.land-=dt;
+  R.y=b.jy;
+  const hopG=b.air?0:hop;
+  b.bod.position.y=-PIV+hopG*0.24+(b.ride?SEAT:0);
+  const sq=1+(hopG-0.45*k)*0.16+breathe+(b.air?Math.max(-0.1,Math.min(0.22,b.jv*0.03)):0)-Math.max(0,b.land)*1.3;
+  b.bod.scale.set(1/Math.sqrt(sq),sq,1/Math.sqrt(sq));
+  if(rolling){b.spin.rotation.set(b.roll/ROLL_T*Math.PI*2,0,0);b.spin.scale.setScalar(0.86);b.spin.position.y=PIV*0.86-0.04;}
+  else{b.spin.rotation.set(0,0,b.ride?-b.ride.turn*0.1:0);b.spin.scale.setScalar(1);b.spin.position.y=PIV;}
+  b.feet.forEach((f,i)=>{
+    const s=Math.sin(b.phase+(i?Math.PI:0));
+    f.position.y=0.12+Math.max(0,s)*0.1*k;f.position.z=0.06+Math.cos(b.phase+(i?Math.PI:0))*0.14*k;
+  });
+  b.shadow.position.x=R.x;b.shadow.position.z=R.z;b.shadow.position.y=fl+0.02;b.shadow.scale.setScalar(b.sc*Math.max(0.45,1-hopG*0.3-(b.jy-fl)*0.28));
+
+  // 당근 휘두르기
+  if(c.hit&&b.swing<0&&!rolling&&!dashing&&spend(b,COST.hit)){b.swing=0;b.hitDone=false;boing(b,0.9);}
+  let ax=REST_X+Math.sin(b.phase)*0.35*k,lean=0.12*k;
+  if(b.swing>=0){
+    b.swing+=dt;const t=b.swing,W=b.wind;
+    if(t<W){ax=REST_X+(-1.2-REST_X)*(t/W);lean=-0.12*(t/W);}
+    else if(t<W+0.1){const u=(t-W)/0.1;ax=-1.2+3.3*u*u;lean=0.35*u;}
+    else if(t<W+0.31){const u=(t-W-0.1)/0.21;ax=2.1+(REST_X-2.1)*u*u*(3-2*u);lean=0.35*(1-u);}
+    else b.swing=-1;
+    if(b.enemy&&t<W){b.fan.visible=true;b.fanMat.opacity=0.22*(t/W);}  // 까만토끼는 때리기 전에 범위를 미리 보여준다
+    if(!b.hitDone&&t>=W+0.07){b.hitDone=true;strike(b);boing(b,0.7);}
+  }
+  if(b.fanT>0){b.fanT-=dt;b.fan.visible=true;b.fanMat.opacity=0.42*Math.max(0,b.fanT)/0.25;}
+  if(b.fan.visible){b.fan.position.set(R.x,b.jy+0.03,R.z);b.fan.rotation.y=b.face;}
+  if(dashing){ax=1.5;lean=0.55;}
+  if(b.ride){ax=1.25;lean=0.18;}
+  if(b.sawT>0){b.sawT-=dt;if(b.swing<0&&b.dash<0&&!b.ride){ax=1.42;lean=0.22;}ax+=Math.sin(time*95)*0.07;}   // 전기톱을 앞으로 내밀고 부르르
+  if(b.shootT>0){b.shootT-=dt;ax=1.5+Math.sin(time*60)*0.06;}   // 당근을 앞으로 겨누고 덜덜덜   // 당근을 앞으로 내밀고 몸을 숙인다
+  b.arm.rotation.set(ax,0,(dashing||b.sawT>0)?-0.1:REST_Z);
+  b.armL.position.z=0.12-Math.sin(b.phase)*0.12*k;
+  b.bod.rotation.x=lean;
+
+  b.twitch-=dt; if(b.twitch<0){b.twitch=1.8+Math.random()*2;if(k<0.2){const e=b.ears[Math.random()<0.5?0:1];e.a.v+=3.5;e.b.v+=5;}}
+  if(b.ride){
+    const bk=b.ride;
+    bk.g.position.set(R.x,b.jy,R.z);bk.g.rotation.set(0,bk.face,-bk.turn*0.1);
+    bk.wheels.forEach(w=>{w.rotation.x+=bk.sp*dt/0.36;});
+    if(bk.gore>0){bk.gore-=dt;if(b.jy<0.1&&bk.sp>2&&Math.random()<dt*22)stain(R.x-Math.sin(bk.face)*0.6,R.z-Math.cos(bk.face)*0.6,0.13);}   // 피 묻은 바퀴 자국
+    bk.put-=dt; if(bk.sp>1&&bk.put<0){bk.put=0.07+(1-bk.sp/BIKE_SP)*0.09;tone(60+bk.sp*7,0.06,'sawtooth',0.035);}   // 부릉부릉
+  }
+  springs(b,b.ride?b.ride.sp/BIKE_SP*2.2:(dashing?2.4:k),dt);
+}
+
+// 까만토끼: 다가와서 범위를 예고하고 내려친 뒤, 잠깐 물러난다
+function think(e,p,dt){
+  const c=think0(e,p,dt);
+  if(e.dead<=0&&p.dead<=0&&!e.air&&e.swing<0&&!c.roll){
+    if(e.blocked){
+      if(e.blocked<=1.05)c.jump=true;                       // 낮은 장애물은 뛰어오른다
+      else{const t=c.mx;c.mx-=c.mz*e.side;c.mz+=t*e.side;}  // 높은 바위는 돌아간다
+    }else if(p.jy-e.jy>0.4&&Math.hypot(p.root.position.x-e.root.position.x,p.root.position.z-e.root.position.z)<2.6)c.jump=true;
+  }
+  return c;
+}
+function think0(e,p,dt){
+  const c={mx:0,mz:0};
+  e.think-=dt;e.cool-=dt;
+  if(p.swing<0)e.dodged=false;
+  if(p.dead>0||e.dead>0)return c;
+  const dx=p.root.position.x-e.root.position.x,dz=p.root.position.z-e.root.position.z,d=Math.hypot(dx,dz)||1,ux=dx/d,uz=dz/d;
+  if(p.swing>=0&&!e.dodged&&d<REACH+0.8){
+    e.dodged=true;
+    if(Math.random()<0.35&&e.sta>=COST.roll&&e.swing<0){c.roll=true;c.mx=-ux+uz*e.side*0.6;c.mz=-uz-ux*e.side*0.6;return c;}
+  }
+  if(e.swing>=0){c.aim=Math.atan2(ux,uz);return c;}
+  if(e.mode==='back'){
+    c.mx=-ux*0.5+uz*e.side*0.8;c.mz=-uz*0.5-ux*e.side*0.8;
+    if(e.think<0)e.mode='chase';
+  }else if(d>REACH-0.4){c.mx=ux;c.mz=uz;}
+  else if(e.cool<=0&&e.sta>=COST.hit){
+    c.hit=true;c.aim=Math.atan2(ux,uz);e.cool=1.4+Math.random();e.mode='back';e.think=1.2+Math.random()*0.8;e.side=Math.random()<0.5?-1:1;
+  }else{c.mx=uz*e.side*0.5;c.mz=-ux*e.side*0.5;c.aim=Math.atan2(ux,uz);}
+  return c;
+}
+
+/* ---------- 토끼 경찰서와 당근 경찰차 ---------- */
+const STN={x:26,z:19.2}, DOOR={x:26,z:15.2}, COP={dmg:8}, CAR_SP=10.5;
+(()=>{
+  const g=new T.Group(); g.position.set(STN.x,0,STN.z); g.rotation.y=Math.PI; scene.add(g);
+  const part=(geo,c,x,y,z)=>{const m=new T.Mesh(geo,flat(c)),l=new T.Mesh(geo,lineMat);l.scale.set(1.03,1.03,1.03);m.add(l);at(m,x,y,z);g.add(m);return m;};
+  part(new T.BoxGeometry(5.2,2.4,3.6),0xeef2fb,0,1.2,0);          // 건물
+  part(new T.BoxGeometry(5.6,0.35,4.0),0x5b6ea8,0,2.55,0);        // 파란 지붕
+  part(new T.BoxGeometry(1.0,1.5,0.1),0x4a3d38,0,0.75,1.84);      // 문
+  [-1.7,1.7].forEach(x=>part(new T.BoxGeometry(0.9,0.7,0.08),0xbfe0ff,x,1.45,1.84));
+  const sign=new T.Mesh(new T.PlaneGeometry(2.6,0.62),new T.MeshBasicMaterial({map:canvasTex(416,100,c=>{
+    c.fillStyle='#5b6ea8';c.fillRect(0,0,416,100);c.fillStyle='#fff';c.font='bold 62px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText('토끼 경찰서',208,54);})}));
+  at(sign,0,2.1,1.86); g.add(sign);
+  part(new T.SphereGeometry(0.28,14,10),0xff4d5e,0,2.95,0);       // 지붕 위 경광등
+  obstacles.push({x:STN.x,z:STN.z,hw:2.7,hd:1.9,h:99,r:3.4});
+})();
+const cars=[];
+function makeCar(){
+  const g=new T.Group(), cream=flat(0xfff3e2);
+  const body=new T.Mesh(carG,flat(0xff8a2a)), bl=new T.Mesh(carG,lineMat);
+  bl.scale.set(1.12,1.03,1.12); bl.position.y=-0.02; body.add(bl);
+  body.scale.set(3.3,2.7,3.3); body.rotation.x=-Math.PI/2; body.position.set(0,0.78,1.6); g.add(body);   // 뾰족한 쪽이 앞
+  const band=new T.Mesh(new T.CylinderGeometry(0.6,0.52,0.5,20),flat(0xffffff)); band.rotation.x=-Math.PI/2; band.position.set(0,0.78,-0.2); g.add(band);   // 흰 띠
+  g.add(at(blob(0.55,0.42,0.75,0x5b6ea8,0.04),0,1.25,-0.45));     // 파란 운전석
+  g.add(at(dot(0.4,0.22,0.05,flat(0xbfe0ff)),0,1.32,0.27));
+  [[-0.2,0.5],[0.2,-0.5],[0,0]].forEach(([x,r])=>{const l=blob(0.13,0.13,0.4,0x7cc47a,0.03);at(l,x,0.85,-1.75);l.rotation.y=r;g.add(l);});
+  const wheels=[];
+  [[-0.62,0.75],[0.62,0.75],[-0.66,-0.8],[0.66,-0.8]].forEach(([x,z])=>{
+    const w=new T.Group(); at(w,x,0.36,z);
+    const t=new T.Mesh(new T.CylinderGeometry(0.36,0.36,0.24,18),flat(0x4a3d38)); t.rotation.z=Math.PI/2; w.add(t);
+    w.add(at(dot(0.02,0.25,0.07,cream),x>0?0.13:-0.13,0,0));
+    g.add(w); wheels.push(w);
+  });
+  const red=new T.Mesh(SPH,new T.MeshBasicMaterial({color:0xff3344})), blue=new T.Mesh(SPH,new T.MeshBasicMaterial({color:0x3d7bff}));
+  red.scale.setScalar(0.16); blue.scale.setScalar(0.16); at(red,-0.22,1.74,-0.45); at(blue,0.22,1.74,-0.45); g.add(red); g.add(blue);
+  shade(g); scene.add(g);
+  const c={g,wheels,red,blue,face:0,sp:0,state:'idle',load:0,t:0,stuck:0,lx:0,lz:0,ramT:0};
+  cars.push(c); return c;
+}
+function dispatch(n){
+  let c=cars.find(k=>k.state==='idle'); if(!c){if(cars.length>=5)return false;c=makeCar();}
+  c.g.visible=true;c.g.position.set(DOOR.x+(Math.random()-0.5)*2,0,DOOR.z);c.face=Math.atan2(player.root.position.x-DOOR.x,player.root.position.z-DOOR.z);
+  c.sp=0;c.state='go';c.load=n;c.t=0;c.stuck=0;c.lx=c.g.position.x;c.lz=c.g.position.z;
+  return true;
+}
+function unload(c){
+  for(let i=0;i<c.load;i++){
+    const s=i%2?1:-1,x=c.g.position.x+Math.cos(c.face)*1.3*s,z=c.g.position.z-Math.sin(c.face)*1.3*s;
+    const e=addNpc(Object.assign({},GBASE,{speed:stars>=4?5:4.3,dmg:stars>=4?14:10}),x,z);
+    e.cool=0.6;e.air=true;e.jv=4;   // 폴짝 뛰어내린다
+  }
+  c.load=0;c.state='park';c.t=0;sfx('land');
+}
+function carTick(dt){
+  const P=player.root.position;let siren=false;
+  for(const c of cars){
+    if(c.state==='idle')continue;
+    const p=c.g.position;c.t+=dt;if(c.ramT>0)c.ramT-=dt;
+    const flash=c.state==='go'&&Math.floor(time*6)%2;
+    c.red.visible=c.state!=='go'||!!flash;c.blue.visible=c.state!=='go'||!flash;
+    let tx=P.x,tz=P.z,go=false,goal=null;
+    if(c.state==='go'){
+      go=true;const d=Math.hypot(P.x-p.x,P.z-p.z);
+      if(d<34)siren=true;
+      if(stars===0||player.dead>0){c.state='home';c.load=0;}
+      else if((d<5.5&&c.sp<7)||d<3.5||c.t>40)unload(c);
+      else if(d<9)c.sp*=Math.exp(-2.5*dt);   // 다가오면 속도를 줄인다
+      // 어딘가에 끼이면 그 자리에서 내린다
+      c.stuck+=dt;if(c.stuck>1.6){if(Math.hypot(p.x-c.lx,p.z-c.lz)<1.2)unload(c);c.stuck=0;c.lx=p.x;c.lz=p.z;}
+    }else if(c.state==='park'){
+      c.sp*=Math.exp(-5*dt);
+      if(c.t>6&&(stars===0||c.t>30)){c.state='home';c.t=0;}
+    }
+    if(c.state==='home'){
+      go=true;tx=DOOR.x;tz=DOOR.z+0.6;
+      if(Math.hypot(tx-p.x,tz-p.z)<2.5||c.t>60){c.state='idle';c.g.visible=false;continue;}
+    }
+    if(go){
+      goal=via(p,tx,tz); if(goal){tx=goal.x;tz=goal.z;}   // 운하 건너편이면 다리로 돌아간다
+      let da=Math.atan2(tx-p.x,tz-p.z)-c.face;da=Math.atan2(Math.sin(da),Math.cos(da));
+      c.face+=Math.max(-2.4*dt,Math.min(2.4*dt,da));
+      c.sp+=(CAR_SP*(Math.abs(da)>1.2?0.45:1)-c.sp)*(1-Math.exp(-1.8*dt));
+    }
+    p.x+=Math.sin(c.face)*c.sp*dt;p.z+=Math.cos(c.face)*c.sp*dt;
+    const hit=pushOut(p,0,1.15); if(hit){c.sp*=0.9;c.face+=2.2*dt*(((hit.x-p.x)*Math.cos(c.face)-(hit.z-p.z)*Math.sin(c.face))>0?-1:1);}   // 장애물을 비껴 돈다
+    c.g.rotation.y=c.face;c.wheels.forEach(w=>{w.rotation.x+=c.sp*dt/0.36;});
+    // 주인공과 부딪히면 밀어내고, 달리던 중이면 들이받는다
+    const dx=P.x-p.x,dz=P.z-p.z,d=Math.hypot(dx,dz);
+    if(d<1.5&&d>0.01&&player.dead<=0&&player.roll<0&&player.jy<1.2){
+      P.x=p.x+dx/d*1.5;P.z=p.z+dz/d*1.5;
+      if(c.sp>4&&c.ramT<=0){c.ramT=1;hurt(player,COP,{dx:Math.sin(c.face),dz:Math.cos(c.face)},8);player.kx=Math.sin(c.face)*9;player.kz=Math.cos(c.face)*9;c.sp*=0.5;}
+    }
+  }
+  sirenT-=dt; if(siren&&sirenT<=0){sirenT=0.36;sirenHi=!sirenHi;tone(sirenHi?740:560,0.34,'square',0.03);}   // 삐뽀삐뽀
+}
+let sirenT=0,sirenHi=false;
+
+/* ---------- 마을 토끼와 경찰 토끼의 생각 ---------- */
+function goTo(b,x,z,stop,sp){
+  const dx=x-b.root.position.x,dz=z-b.root.position.z,d=Math.hypot(dx,dz),c={mx:0,mz:0};
+  if(d>stop){
+    c.mx=dx/d*sp;c.mz=dz/d*sp;
+    if(b.blocked&&!b.air){if(b.blocked<=1.05)c.jump=true;else{const t=c.mx;c.mx-=c.mz*b.side;c.mz+=t*b.side;}}
+  }
+  return c;
+}
+// 마을 토끼: 한가롭게 돌아다니다가 총소리가 나면 달아난다
+function villagerCtrl(v,dt){
+  if(v.alert>0)v.alert-=dt;
+  const R=v.root.position,P=player.root.position,dx=R.x-P.x,dz=R.z-P.z,d=Math.hypot(dx,dz)||1;
+  if(v.alert>0&&d<24){v.speed=5.2;return goTo(v,R.x+dx/d*6,R.z+dz/d*6,0,1);}
+  v.speed=2.0;v.wt-=dt;
+  if(v.wt<=0){v.wt=2+Math.random()*4;v.idle=Math.random()<0.35;v.tx=v.home.x+(Math.random()-0.5)*10;v.tz=v.home.z+(Math.random()-0.5)*10;}
+  return v.idle?{mx:0,mz:0}:goTo(v,v.tx,v.tz,0.6,1);
+}
+// 경찰 토끼: 수배 중이면 끝까지 쫓아오고, 수배가 풀리면 경찰서로 돌아간다
+function guardCtrl(e,dt){
+  const R=e.root.position,P=player.root.position;
+  if(stars===0||player.dead>0){   // 수배가 풀리면 걸어서 경찰서로 돌아간다
+    if(Math.hypot(R.x-DOOR.x,R.z-DOOR.z)<2.2){e.gone=true;e.silent=true;}
+    const w=via(R,DOOR.x,DOOR.z);
+    return w?goTo(e,w.x,w.z,0.3,0.8):goTo(e,DOOR.x,DOOR.z,0.5,0.8);
+  }
+  const w=via(R,P.x,P.z); if(w&&e.swing<0)return goTo(e,w.x,w.z,0.3,1);   // 운하 건너편이면 다리로 돌아온다
+  return think(e,player,dt);
+}
+
+/* ---------- 말풍선, 알림 ---------- */
+let curRegion='bridge0',toastT=0,dlgT=0;
+const goalEl=$('goal'),arrowEl=$('arrow'),toastEl=$('toast'),dlgEl=$('dlg'),whoEl=$('who'),txtEl=$('txt'),dlgQ=[];
+arrowEl.hidden=true;
+function showDlg(){
+  if(!dlgQ.length){dlgEl.hidden=true;return;}
+  whoEl.textContent=dlgQ[0][0];txtEl.textContent=dlgQ[0][1];dlgEl.hidden=false;dlgT=Math.max(3.5,dlgQ[0][1].length*0.11);
+}
+function say(who,text){dlgQ.push([who,text]);if(dlgQ.length===1)showDlg();}
+dlgEl.addEventListener('pointerdown',e=>{dlgT=0;e.preventDefault();e.stopPropagation();});
+function toast(t){toastEl.textContent=t;toastEl.hidden=false;toastT=2.6;}
+
+/* ---------- 수배: 소란을 피울수록 별이 오르고 경찰 토끼가 늘어난다 ---------- */
+let heat=0,stars=0,calm=99,guardT=0,fireT=0,firing=false,sawing=false,sawTick=0;
+const vQueue=[], WANT=[0,2,3,5,7,9];
+function trouble(n){heat=Math.min(30,heat+n);calm=0;}
+// 당근 기관총: 바라보는 쪽의 가까운 토끼를 살짝 따라가며 쏜다
+function shoot(){
+  const P=player.root.position,rd=player.ride;
+  let ang=rd?rd.face:player.face,best=rd?0.9:0.6,bd=15,tg=null;
+  enemies.forEach(e=>{
+    if(e.dead>0||!e.root.visible)return;
+    const dx=e.root.position.x-P.x,dz=e.root.position.z-P.z,d=Math.hypot(dx,dz);
+    if(d>15||d<0.3)return;
+    let da=Math.atan2(dx,dz)-ang;da=Math.abs(Math.atan2(Math.sin(da),Math.cos(da)));
+    if(da<best&&d<bd){bd=d;tg=Math.atan2(dx,dz);}
+  });
+  if(tg!==null){ang=tg;if(!rd)player.face=tg;}
+  ang+=(Math.random()-0.5)*0.07;
+  const b=bullets.find(k=>k.life<=0); if(!b)return;
+  b.dx=Math.sin(ang);b.dz=Math.cos(ang);b.life=0.6;
+  b.g.position.set(P.x+b.dx*0.9,player.jy+0.75+(rd?SEAT:0),P.z+b.dz*0.9);b.g.rotation.y=ang;b.g.visible=true;
+  player.shootT=0.18;player.ears.forEach(e=>{e.a.v-=2;});
+  sfx('shot');calm=0;
+  enemies.forEach(e=>{if(e.team==='v'&&Math.hypot(e.root.position.x-P.x,e.root.position.z-P.z)<11)e.alert=Math.max(e.alert,6);});
+}
+function world(dt){
+  const P=player.root.position;
+  boat.position.x+=dt*1.6; if(boat.position.x>60)boat.position.x=-60;
+  if(dlgQ.length){dlgT-=dt;if(dlgT<=0){dlgQ.shift();showDlg();}}
+  if(toastT>0){toastT-=dt;toastEl.style.opacity=Math.min(1,toastT*2);if(toastT<=0)toastEl.hidden=true;}
+  const onB=P.z>CZ0&&P.z<CZ1;
+  let reg=onB?'bridge'+(Math.abs(P.x)<8?0:1):P.z<-22?'north':P.z>5?'south':'mid',name=onB?(Math.abs(P.x)<8?'에비스바시':'운하 다리'):P.z<-22?'북쪽 거리':P.z>5?'도톤보리 거리':'다리로 가는 길';
+  if(reg!==curRegion){curRegion=reg;toast(name);}
+
+  // 발사
+  if(firing&&player.dead<=0&&player.roll<0&&player.dash<0){fireT-=dt;while(fireT<=0){fireT+=0.1;shoot();}}else fireT=0;
+  // 전기톱: 누르고 있는 동안 바로 앞의 토끼를 계속 갈아 버린다. 기력이 조금씩 든다
+  if(sawing&&player.dead>0)setSaw(false);   // 기절하면 꺼진다
+  const sawOn=sawing&&!firing;   // 구르거나 돌진하는 동안에도 톱은 손에 들려 돌아간다
+  if(sawOn){
+    player.sawT=0.12;calm=0;
+    saw.teeth.forEach((t,i)=>{t.position.y=0.56+((i>>1)*0.13+time*3)%0.9;});
+    sawTick-=dt;
+    if(sawTick<=0){
+      sawTick=0.1;sfx('saw');
+      const ang=player.ride?player.ride.face:player.face,fx=Math.sin(ang),fz=Math.cos(ang);
+      enemies.forEach(e=>{
+        const dx=e.root.position.x-P.x,dz=e.root.position.z-P.z,d=Math.hypot(dx,dz)||1;
+        if(e.team==='v'&&d<10)e.alert=Math.max(e.alert,6);
+        if(e.dead>0||!e.root.visible||d>1.9||(dx*fx+dz*fz)/d<0.45||Math.abs(e.jy-player.jy)>1)return;
+        if(e.roll>=0||e.hurt>0.17)return;
+        sawKill=true;hurt(e,player,{dx:dx/d,dz:dz/d},9);sawKill=false;e.kx=dx/d*1.2;e.kz=dz/d*1.2;
+        bleed(e.root.position.x,e.jy+0.8*e.sc,e.root.position.z,fx,fz,8,5);
+      });
+    }
+  }
+  const showSaw=player.sawT>0;
+  if(saw.g.visible!==showSaw){saw.g.visible=showSaw;saw.parts.forEach(c=>{c.visible=!showSaw;});}
+  bullets.forEach(b=>{
+    if(b.life<=0)return;
+    b.life-=dt;const p=b.g.position;p.x+=b.dx*30*dt;p.z+=b.dz*30*dt;
+    let dead=b.life<=0;
+    if(!dead)for(const o of obstacles){if(p.y<o.h&&Math.abs(p.x-o.x)<o.r&&Math.abs(p.z-o.z)<o.r&&inside(o,p.x,p.z,0)){dead=true;break;}}
+    if(!dead)for(const e of enemies){
+      if(e.dead>0||!e.root.visible||e.roll>=0)continue;
+      const dx=e.root.position.x-p.x,dz=e.root.position.z-p.z;
+      if(dx>1||dx<-1||dz>1||dz<-1||Math.hypot(dx,dz)>0.6*e.sc+0.1||Math.abs(e.jy+0.8-p.y)>1.2)continue;
+      hurt(e,player,{dx:b.dx,dz:b.dz},10);e.kx=b.dx*3;e.kz=b.dz*3;dead=true;break;
+    }
+    if(dead){b.life=0;b.g.visible=false;}
+  });
+
+  // 수배 별
+  calm+=dt; if(calm>12)heat=Math.max(0,heat-dt*0.7);
+  const s=heat>=22?5:heat>=14?4:heat>=8?3:heat>=4?2:heat>=1?1:0;
+  if(s>stars){toast('수배 '+'★'.repeat(s));sfx('alarm');}
+  if(s<stars&&s===0)toast('수배가 풀렸어요');
+  stars=s;
+  goalEl.textContent=stars?'수배 '+'★'.repeat(stars)+'☆'.repeat(5-stars):'평화로운 도톤보리';
+  // 경찰 토끼는 경찰서에서 당근 경찰차를 타고 온다
+  guardT-=dt;
+  if(player.dead<=0&&guardT<=0){
+    const have=enemies.filter(e=>e.team==='g'&&e.dead<=0).length+cars.reduce((n,c)=>n+c.load,0),need=WANT[stars]-have;
+    if(need>0&&dispatch(Math.min(2,need)))guardT=2.2;
+  }
+  carTick(dt);
+  // 쓰러진 마을 토끼 자리는 조금 뒤에 새 토끼가 채운다
+  for(let i=vQueue.length-1;i>=0;i--){vQueue[i]-=dt;if(vQueue[i]<=0){vQueue.splice(i,1);addVillager();}}
+
+  // 당근 줍기
+  pickups.forEach(k=>{
+    if(k.off>0){k.off-=dt;if(k.off<=0)k.g.visible=true;return;}
+    k.g.rotation.y+=dt*1.5;k.g.position.y=0.3+Math.sin(time*3+k.x)*0.08;
+    if(player.dead<=0&&player.hp<player.hpMax&&Math.hypot(P.x-k.x,P.z-k.z)<0.9&&player.jy<1){
+      player.hp=Math.min(player.hpMax,player.hp+35);k.off=45;k.g.visible=false;pop('냠! 체력 회복',player);sfx('heal');
+    }
+  });
+}
+say('해설','오사카 도톤보리, 에비스바시 다리 위. 커다란 광고판 아래로 토끼들이 한가롭게 거닐고 있어요.');
+say('도움말','발사 버튼을 누르고 있으면 당근 기관총이 나가요. 오토바이를 탄 채로도 쏠 수 있어요.');
+say('도움말','전기톱 버튼을 한 번 누르면 켜지고, 다시 누르면 꺼져요. 켜 둔 채로 구르거나 돌진해도 톱을 들고 있어요.');
+say('도움말','운하는 다리 세 곳으로만 건널 수 있어요. 당근 오토바이는 다리 남쪽 길목에 세워 뒀어요.');
+say('도움말','움직이는 동안에는 시야가 알아서 따라와요. 빈 화면을 끌면 직접 돌릴 수도 있어요.');
+say('도움말','소란을 피우면 수배 별이 오르고, 도톤보리 거리 동쪽 토끼 경찰서에서 당근 경찰차가 출동해요. 한동안 조용히 지내면 별이 내려가요.');
+
+const v3=new T.Vector3(),camT=new T.Vector3(),rideBtn=$('ride');let camY=0,camInit=false;
+function toScreen(b,h){
+  v3.set(b.root.position.x,b.root.position.y+h*b.sc,b.root.position.z).project(cam);
+  return {x:(v3.x+1)/2*canvas.clientWidth,y:(1-v3.y)/2*canvas.clientHeight,ok:v3.z<1};
+}
+function update(dt){
+  time+=dt;musicTick();
+  let mx=ix,mz=iy;
+  if(keys.a||keys.arrowleft)mx-=1; if(keys.d||keys.arrowright)mx+=1;
+  if(keys.w||keys.arrowup)mz-=1; if(keys.s||keys.arrowdown)mz+=1;
+  if(keys.q){camYaw+=1.9*dt;lookT=1.5;} if(keys.e){camYaw-=1.9*dt;lookT=1.5;}
+  // 자동 시야: 움직이는 동안 카메라가 토끼 등 뒤로 천천히 돌아온다. 직접 시야를 돌린 직후와 카메라 쪽으로 걸어올 때는 쉰다
+  if(lookT>0)lookT-=dt;
+  if(lookId===null&&lookT<=0&&player.dead<=0&&player.roll<0){
+    const sp=Math.hypot(player.vx,player.vz);
+    if(sp>1){
+      let d=player.face+Math.PI-camYaw;d=Math.atan2(Math.sin(d),Math.cos(d));
+      camYaw+=d*Math.cos(d/2)*(player.ride?2.6:1.7)*Math.min(1,sp/4)*dt;
+    }
+  }
+  // 스틱의 위쪽은 언제나 카메라가 보는 방향
+  const cy=Math.cos(camYaw),sy=Math.sin(camYaw),sx0=mx;
+  mx=cy*sx0+sy*mz;mz=-sy*sx0+cy*mz;
+  updateBunny(player,{mx,mz,hit:wantHit,jump:wantJump,roll:wantRoll,dash:wantDash},dt);
+  wantHit=wantJump=wantRoll=wantDash=false;
+  const P=player.root.position;
+  // 멀리 있는 병사는 쉬게 둔다
+  enemies.forEach(e=>{
+    const dP=Math.hypot(e.root.position.x-P.x,e.root.position.z-P.z), on=dP<34;
+    e.root.visible=e.shadow.visible=on;
+    // 가까우면 전부, 중간이면 그림자 생략, 멀면 외곽선도 생략
+    const lod=dP<(10-detail*2.5)?0:dP<(18-detail*4)?1:2;
+    if(lod!==e.lod){e.lod=lod;e.casters.forEach(m=>{m.castShadow=lod===0;});e.lines.forEach(m=>{m.visible=lod<2;});}
+    if(on)updateBunny(e,e.team==='g'?guardCtrl(e,dt):villagerCtrl(e,dt),dt);
+    else{e.fan.visible=false;if(e.team==='g'){e.gone=true;e.silent=true;}}   // 따돌린 경찰 토끼는 포기한다
+  });
+  // 오토바이로 들이받기
+  if(player.ride&&bike.sp>5){
+    const fx=Math.sin(bike.face),fz=Math.cos(bike.face);
+    enemies.forEach(e=>{
+      if(e.ramT>0){e.ramT-=dt;return;}
+      if(e.dead>0||!e.root.visible||Math.abs(e.jy-player.jy)>1)return;
+      if(Math.hypot(e.root.position.x-P.x,e.root.position.z-P.z)>1.4)return;
+      e.ramT=0.8;
+      if(e.roll>=0){pop('회피!',e);return;}
+      hurt(e,player,{dx:fx,dz:fz},12);e.kx=fx*10;e.kz=fz*10;bike.sp*=0.7;bike.gore=1.2;
+    });
+  }
+  const nearBike=Math.hypot(P.x-bike.g.position.x,P.z-bike.g.position.z)<2.6;
+  rideBtn.hidden=!(player.ride||(nearBike&&player.dead<=0));
+  if(!rideBtn.hidden)rideBtn.textContent=player.ride?'내리기':'타기';
+  // 쓰러진 토끼는 사라진다
+  for(let i=enemies.length-1;i>=0;i--){
+    const e=enemies[i]; if(!e.gone)continue;
+    enemies.splice(i,1);bunnies.splice(bunnies.indexOf(e),1);
+    scene.remove(e.root);scene.remove(e.shadow);scene.remove(e.fan);e.box.remove();
+    if(!e.silent&&e.team==='v')vQueue.push(10);
+  }
+
+  // 서로 겹치지 않게 밀어낸다 (구르는 중에는 통과)
+  for(let i=0;i<bunnies.length;i++)for(let j=i+1;j<bunnies.length;j++){
+    const A=bunnies[i],B=bunnies[j];
+    if(A.dead>0||B.dead>0||A.roll>=0||B.roll>=0||!A.root.visible||!B.root.visible)continue;
+    const a=A.root.position,b=B.root.position,dx=b.x-a.x,dz=b.z-a.z;
+    if(dx>1||dx<-1||dz>1||dz<-1)continue;
+    const d=Math.hypot(dx,dz);
+    if(d<0.95&&d>0.001){const p=(0.95-d)/2;a.x-=dx/d*p;a.z-=dz/d*p;b.x+=dx/d*p;b.z+=dz/d*p;}
+  }
+
+  turnips.forEach(t=>{
+    step(t.s,0,60,3,dt);
+    t.g.position.x+=t.vx*dt;t.g.position.z+=t.vz*dt; const f=Math.exp(-4*dt);t.vx*=f;t.vz*=f;
+    pushOut(t.g.position,0,0.45);
+    const a=Math.max(-1,Math.min(1,t.s.x));
+    t.tip.quaternion.setFromAxisAngle(t.axis,a); t.tip.scale.y=1-Math.abs(a)*0.15;
+  });
+
+  world(dt);bloodTick(dt);gibTick(dt);
+
+  // 3인칭 카메라: 토끼가 늘 화면 가운데
+  const cp=Math.cos(camPitch),D=player.ride?9:7.2;
+  camY+=(P.y-camY)*(1-Math.exp(-5*dt));
+  camT.set(P.x+Math.sin(camYaw)*cp*D,camY+1.1+Math.sin(camPitch)*D,P.z+Math.cos(camYaw)*cp*D);
+  if(camInit)cam.position.lerp(camT,1-Math.exp(-16*dt));else{cam.position.copy(camT);camInit=true;}
+  cam.lookAt(P.x,camY+1.1,P.z);
+  cam.updateMatrixWorld();
+
+  // 게이지
+  hpEl.style.transform='scaleX('+player.hp/player.hpMax+')';
+  staEl.style.transform='scaleX('+player.sta/100+')';
+  staTrack.classList.toggle('no',player.noSta>0);
+  enemies.forEach(e=>{
+    if(!e.root.visible||e.dead>0||(e.team==='v'&&e.hp>=e.hpMax)){e.box.hidden=true;return;}
+    const s=toScreen(e,2.0);
+    e.box.hidden=!s.ok;
+    e.box.style.transform='translate('+(s.x-32)+'px,'+s.y+'px)';
+    e.fill.style.transform='scaleX('+e.hp/e.hpMax+')';
+  });
+  if(popT>0&&popB){
+    popT-=dt;const q=toScreen(popB,2.5);
+    popEl.hidden=false;popEl.style.transform='translate('+q.x+'px,'+(q.y-(0.7-popT)*40)+'px) translate(-50%,-100%)';
+    popEl.style.opacity=Math.min(1,popT*3);
+  }else popEl.hidden=true;
+}
+
+function resize(){
+  const w=canvas.clientWidth,h=canvas.clientHeight;
+  if(canvas.width!==Math.floor(w*renderer.getPixelRatio())||canvas.height!==Math.floor(h*renderer.getPixelRatio())){
+    renderer.setSize(w,h,false);cam.aspect=w/Math.max(1,h);cam.fov=w<h?56:45;cam.updateProjectionMatrix();
+  }
+}
+shade(scene);
+let last=performance.now(),warm=0,accT=0,accN=0,detail=0,shFrame=0;
+if(COARSE&&lit){renderer.shadowMap.autoUpdate=false;}   // 폰에서는 그림자를 두 프레임에 한 번만 다시 그린다
+function frame(now){
+  const raw=(now-last)/1000,dt=Math.min(1/30,raw);last=now;
+  resize();update(dt);
+  // 해는 토끼를 따라다니며 그림자를 드리운다
+  const SP=player.root.position;
+  sun.position.set(SP.x+6,24,SP.z+8);sun.target.position.set(SP.x,0,SP.z);
+  // 기기가 버거워하면 그림자를 끈다
+  if(COARSE&&lit&&(shFrame++&1)===0)renderer.shadowMap.needsUpdate=true;
+  warm+=raw;
+  if(warm>3&&raw<0.5){
+    accT+=raw;accN++;
+    if(accT>=1.5){
+      const fps=accN/accT;accT=0;accN=0;
+      if(fps<40){
+        if(PR>1.25){PR=1.25;renderer.setPixelRatio(PR);}
+        else if(PR>1){PR=1;renderer.setPixelRatio(PR);}
+        else if(lit&&sun.castShadow){sun.castShadow=false;toast('그림자를 껐어요 (기기 성능)');}
+        else if(detail<2)detail++;
+      }
+    }
+  }
+  renderer.render(scene,cam);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>
+
+</body></html>
