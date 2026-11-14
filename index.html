@@ -74,7 +74,9 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
 .np .rv{display:none;color:#7dffb0;font-size:.82rem}.np .rvT{display:none;width:72px;height:8px}.np .rvT i{background:#7dffb0}
 .np.rev .rv,.np.rev .rvT{display:block}.np b{font-weight:400}
 .aiRow{display:flex;align-items:center;justify-content:center;gap:10px;font-size:.9rem;color:#d6ebe7}.aiRow .pill{font-size:1.05rem;padding:8px 18px}
-#setP,#help{z-index:6;background:rgba(3,14,17,.72)}
+#setP,#help{z-index:6;background:rgba(3,14,17,.72)}#quitP{z-index:7;background:rgba(3,14,17,.8)}
+.srow{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:1rem;color:#d6ebe7;text-align:left}.seg{display:flex;gap:6px}
+#setP .pill{font-size:.98rem;padding:7px 14px;min-width:54px}#setP .pill.mine{background:rgba(230,194,90,.3);border-color:var(--gold);color:#fff}#setP .pill:disabled{opacity:.5}
 /* 화면이 바뀔 때: 배경은 스르륵, 패널은 아래에서 통 하고 올라온다 */
 .veil:not([hidden]){animation:vIn .3s ease both}
 .veil:not([hidden])>.panel{animation:pIn .38s cubic-bezier(.2,1.35,.4,1) both}
@@ -271,7 +273,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--teal);outline-o
     </div>
     <div class="row">
       <div id="party"></div>
-      <div class="opts"><button id="snd" class="pill" type="button" aria-pressed="true">소리 켬</button><button id="buzz" class="pill" type="button" aria-pressed="true" hidden>진동 켬</button></div>
+      <div class="opts"><button id="menuBtn" class="pill" type="button">메뉴</button><span hidden><button id="snd" type="button">소리</button><button id="buzz" type="button">진동</button></span></div>
     </div>
     <div id="dlg" hidden><b id="who"></b><span id="txt"></span></div>
     <div id="buff"></div>
@@ -332,6 +334,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--teal);outline-o
     <button class="big alt" id="joinRoom" type="button">방 참가</button>
     <button class="big alt" id="solo" type="button">혼자 하기</button>
     <p id="netNote"></p>
+    <button class="big alt" id="setBtn0" type="button">설정</button>
     <button class="big alt" id="helpBtn" type="button">도움말</button>
     <button class="link" id="reNick" type="button">닉네임 바꾸기</button>
   </div>
@@ -350,12 +353,19 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--teal);outline-o
 </div>
 <div id="setP" class="veil" hidden>
   <div class="panel">
-    <h2>설정</h2>
-    <p>빈자리를 채울 동료 AI 수</p>
-    <div class="aiRow"><button class="pill" id="ai0" type="button">없음</button><button class="pill" id="ai1" type="button">1명</button><button class="pill" id="ai2" type="button">2명</button></div>
+    <h2 id="setTitle">설정</h2>
+    <div class="srow"><span>그래픽</span><span class="seg" id="gfxSeg"><button class="pill" type="button" data-v="2">높음</button><button class="pill" type="button" data-v="1">중간</button><button class="pill" type="button" data-v="0">낮음</button></span></div>
+    <div class="srow"><span>배경음악</span><button class="pill" id="optBgm" type="button"></button></div>
+    <div class="srow"><span>효과음</span><button class="pill" id="optSfx" type="button"></button></div>
+    <div class="srow" id="buzzRow"><span>진동</span><button class="pill" id="optBuzz" type="button"></button></div>
+    <div class="srow" id="aiRowW"><span>동료 AI</span><span class="seg"><button class="pill" id="ai0" type="button">없음</button><button class="pill" id="ai1" type="button">1명</button><button class="pill" id="ai2" type="button">2명</button></span></div>
     <p id="setNote"></p>
+    <button class="big alt" id="quitBtn" type="button">게임 나가기</button>
     <button class="big" id="setClose" type="button">닫기</button>
   </div>
+</div>
+<div id="quitP" class="veil" hidden>
+  <div class="panel"><h2>게임에서 나갈까요?</h2><p id="quitNote"></p><button class="big" id="quitYes" type="button">나가기</button><button class="big alt" id="quitNo" type="button">계속하기</button></div>
 </div>
 <div id="help" class="veil" hidden>
   <div class="panel wide helpP">
@@ -386,7 +396,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--teal);outline-o
       <li><span class="bf" style="--c:#7dffb0"><svg><use href="#i-potion"/></svg></span><b>물약 마시는 중</b></li>
     </ul>
     <h3>대기실</h3>
-    <ul><li>모드와 동료 AI 수(없음·1명·2명)는 혼자 할 때는 내가, 방에서는 방장이 정합니다. 인원이 적으면 적의 체력과 수도 줄어듭니다.</li></ul>
+    <ul><li>모드와 동료 AI 수(설정 버튼 → 없음·1명·2명)는 혼자 할 때는 내가, 방에서는 방장이 정합니다. 인원이 적으면 적의 체력과 수도 줄어듭니다.</li></ul>
     </div>
     <div class="hs" data-t="g">
     <h3>전사토끼 <small>체력 200 · 균형형</small></h3>
@@ -1032,7 +1042,7 @@ function audioStart(){
   const C=window.AudioContext||window.webkitAudioContext; if(!C)return;
   try{AC=new C();}catch(e){AC=null;return;}
   master=AC.createGain();master.gain.value=muted?0:0.9;master.connect(AC.destination);
-  musicG=AC.createGain();musicG.gain.value=0.5;musicG.connect(master);
+  musicG=AC.createGain();musicG.gain.value=0.5;musicG.connect(AC.destination);
   noiseBuf=AC.createBuffer(1,AC.sampleRate*0.5,AC.sampleRate);
   const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
   nextNote=AC.currentTime+0.15;
@@ -1420,11 +1430,16 @@ function dmgText(n,x,y,z,crit){const e=dmgEls[dmgI];dmgI=(dmgI+1)%dmgEls.length;
 const BUZZ={hit:12,crit:[28,30,45],hurt:70,heavy:[150,50,220],down:[90,60,90,60,320],quake:[60,40,60,40,60,40,400],dodge:[18,25,18]};
 const SHAKE={hit:0.04,crit:0.16,hurt:0.22,heavy:0.55,down:0.4,quake:0.5,dodge:0.03};
 const canBuzz=typeof navigator!=='undefined'&&typeof navigator.vibrate==='function';
+// 아이폰은 웹 진동을 지원하지 않는다. 대신 스위치 입력을 눌렀을 때 나는 톡 하는 햅틱을 빌려 쓴다 (세기는 못 바꾸고 횟수로만 구분, 기기에 따라 안 될 수 있다)
+const IOS=typeof navigator!=='undefined'&&(/iP(hone|ad|od)/.test(navigator.userAgent||'')||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1));
+const HAPN={hit:1,crit:2,hurt:2,heavy:3,down:3,quake:3,dodge:2};let hapL=null;
+function hapTick(){try{if(!hapL){hapL=document.createElement('label');hapL.setAttribute('aria-hidden','true');hapL.style.display='none';const i=document.createElement('input');i.type='checkbox';i.setAttribute('switch','');hapL.appendChild(i);document.body.appendChild(hapL);}hapL.click();}catch(e){}}
 let buzzOn=true,buzzHold=0,shake=0,flashT=0,flashC='';
 function impact(kind){
   // 연속 사격처럼 잦은 타격은 0.12초에 한 번만 울린다. 더 센 진동이 울리는 중이면 약한 것으로 덮지 않는다
   const now=time,weak=kind==='hit';
   if(canBuzz&&buzzOn&&!(weak&&now<buzzHold)){try{navigator.vibrate(BUZZ[kind]);}catch(e){}buzzHold=now+(weak?0.12:kind==='crit'?0.15:0.5);}
+  else if(IOS&&buzzOn&&!(weak&&now<buzzHold)){const n=HAPN[kind]||1;for(let i=0;i<n;i++)setTimeout(hapTick,i*70);buzzHold=now+(weak?0.12:0.3);}
   shake=Math.max(shake,SHAKE[kind]);
   // 맞으면 화면 가장자리부터 붉게 조여 온다. 세게 맞을수록 진하고 오래 간다
   if(kind==='hurt'){flashT=0.4;flashC='radial-gradient(ellipse at center,rgba(255,0,30,.1) 35%,rgba(255,0,30,.5) 72%,rgba(190,0,20,.92) 100%)';}
@@ -1445,11 +1460,12 @@ function loadSamples(){   // 첫 터치 뒤에 한 번, 넣어 둔 효과음을 
 let bgmSrc=null,bgmG=null,bgmNow='';
 function bgmTick(){   // 싸우는 동안에는 전투 음악, 그 밖에는 대기실 음악을 돌려 튼다 (둘 다 녹음된 곡)
   if(!AC||!master)return;const fight=state==='fight'||state==='dying',want=fight?(bufs.bgm?'bgm':''):(bufs.menu?'menu':'');
+  if(bgmG)bgmG.gain.value=opt.bgm?(bgmNow==='bgm'?0.4:0.5):0;if(musicG)musicG.gain.value=opt.bgm&&!bgmNow&&!fight?0.5:0;   // 배경음악 켬/끔
   if(want===bgmNow)return;
   if(bgmSrc){try{bgmSrc.stop();}catch(e){}bgmSrc=null;}
-  bgmNow=want;if(musicG)musicG.gain.value=want||fight?0:0.5;   // 녹음된 곡이 풀리기 전까지만 합성음 가락이 나온다
+  bgmNow=want;   // 녹음된 곡이 풀리기 전까지만 합성음 가락이 나온다
   if(!want)return;
-  if(!bgmG){bgmG=AC.createGain();bgmG.connect(master);}bgmG.gain.value=want==='bgm'?0.4:0.5;
+  if(!bgmG){bgmG=AC.createGain();bgmG.connect(AC.destination);}bgmG.gain.value=opt.bgm?(want==='bgm'?0.4:0.5):0;
   bgmSrc=AC.createBufferSource();bgmSrc.buffer=bufs[want];bgmSrc.loop=true;bgmSrc.connect(bgmG);bgmSrc.start();
 }
 function smp(name,vol,rate,delay){
@@ -2983,16 +2999,25 @@ function ghJoin(name){
       if(asHost){
         NET.host=true;NET.conns=[];done=true;ok(rm);
         peer.on('connection',c=>{
-          c.on('open',()=>{if(NET.conns.length>=2||state!=='lobby'){try{c.send({t:'x',why:state!=='lobby'?'busy':'full'});}catch(e){}setTimeout(()=>{try{c.close();}catch(e){}},300);return;}NET.conns.push(c);cast();});
-          c.on('data',m=>{if(!m)return;if(m.t==='p'){roster.set(c.peer,m.p);cast();}else if(m.t==='i'){const h=heroes.find(q=>q.remote&&q.peer===c.peer);if(h)netOnInput(h,m.i);}});
-          const bye=()=>{const i=NET.conns.indexOf(c);if(i>=0)NET.conns.splice(i,1);roster.delete(c.peer);heroes.forEach(h=>{if(h.peer===c.peer){h.remote=false;h.peer='';}});cast();};   // 나간 사람의 토끼는 동료 AI가 이어받는다
+          const no=why=>{try{c.send({t:'x',why});}catch(e){}setTimeout(()=>{try{c.close();}catch(e){}},300);};
+          c.on('data',m=>{if(!m)return;
+            if(m.t==='p'&&!c.inn){   // 첫 인사를 받고 들여보낼지 정한다. 대기실이면 그냥 받고, 전투 중이면 나갔던 사람만 다시 받는다
+              if(state==='lobby'){if(NET.conns.length>=2){no('full');return;}c.inn=true;NET.conns.push(c);}
+              else{const nk=cleanNick(m.p&&m.p.nick),h=state==='fight'&&nk?heroes.find(q=>q.human&&!q.remote&&!q.off&&q.nick===nk):null;
+                if(!h){no('busy');return;}
+                c.inn=true;h.remote=true;h.peer=c.peer;h.rin={};NET.conns.push(c);roster.set(c.peer,m.p);
+                try{c.send({t:'g',mode:gmode,me:h.idx,sl:heroes.map(q=>[q.ci,q.nick,q.off?1:0]),hp:boss.hpMax,stg:boss.stgMax});}catch(e){}
+                toast(nk+' 님이 돌아왔어요');cast();return;}
+            }
+            if(m.t==='p'){if(!c.inn)return;roster.set(c.peer,m.p);cast();}else if(m.t==='i'){const h=heroes.find(q=>q.remote&&q.peer===c.peer);if(h)netOnInput(h,m.i);}});
+          const bye=()=>{const i=NET.conns.indexOf(c);if(i>=0)NET.conns.splice(i,1);roster.delete(c.peer);heroes.forEach(h=>{if(h.peer===c.peer){h.remote=false;h.peer='';if(state==='fight')toast(h.nick+' 님이 나갔어요. 동료 AI가 이어받아요');}});cast();};   // 나간 사람의 토끼는 동료 AI가 이어받는다
           c.on('close',bye);c.on('error',bye);
         });
       }else{
         const c=peer.connect(HID,{reliable:true,serialization:'json'});rm.conn=c;
         const to=setTimeout(()=>{if(!done){done=true;try{peer.destroy();}catch(_){}fail(new Error('timeout'));}},9000);
         c.on('open',()=>{clearTimeout(to);if(!done){done=true;ok(rm);}});
-        c.on('data',m=>{if(!m)return;if(m.t==='r'){roster.clear();m.l.forEach(e=>roster.set(e[0],e[1]));fire();}else if(m.t==='x'){drop();toast(m.why==='busy'?'이미 전투 중인 방이에요':'방이 가득 찼어요');}else netOnData(m);});
+        c.on('data',m=>{if(!m)return;if(m.t==='r'){roster.clear();m.l.forEach(e=>roster.set(e[0],e[1]));fire();}else if(m.t==='g')rejoin(m);else if(m.t==='x'){drop();toast(m.why==='busy'?'이미 전투 중인 방이에요':'방이 가득 찼어요');}else netOnData(m);});
         c.on('close',drop);c.on('error',drop);
       }
     });
@@ -3075,15 +3100,40 @@ function finish(win){
   meter();$('end').hidden=false;sfx(win?'win':'ko');
 }
 
+/* ---------- 설정: 그래픽, 배경음악, 효과음, 진동 ---------- */
+const opt={gfx:2,bgm:true,sfx:true,buzz:true};
+function applyOpt(){
+  muted=!opt.sfx;if(master)master.gain.value=muted?0:0.9;buzzOn=opt.buzz;
+  const dpr=Math.min(window.devicePixelRatio||1,COARSE?1.5:2);PR=opt.gfx===2?dpr:opt.gfx===1?Math.min(dpr,1.25):1;renderer.setPixelRatio(PR);   // 높음: 선명하게 + 그림자, 중간: 조금 흐리게 + 그림자, 낮음: 흐리게, 그림자 없음
+  if(lit)sun.castShadow=opt.gfx>0;
+}
+function renderSet(){
+  if(document.querySelectorAll)document.querySelectorAll('#gfxSeg button').forEach(b=>b.classList.toggle('mine',+b.dataset.v===opt.gfx));
+  [['optBgm',opt.bgm],['optSfx',opt.sfx],['optBuzz',opt.buzz]].forEach(([id,on])=>{$(id).textContent=on?'켬':'끔';$(id).classList.toggle('mine',on);});
+  const game=state==='fight',lob=state==='lobby',can=!lob||net.solo||my.host,an=lob?roomAi():my.ai;
+  show('aiRowW',!game);show('quitBtn',game);show('buzzRow',canBuzz||IOS);$('setTitle').textContent=game?'메뉴':'설정';
+  [0,1,2].forEach(k=>{$('ai'+k).classList.toggle('mine',an===k);$('ai'+k).disabled=!can;});
+  $('setNote').textContent=game?'':can?'동료 AI는 빈자리를 채워요. 인원이 적으면 적의 체력과 수도 줄어들어요.':'동료 AI 수는 방장만 바꿀 수 있어요.';
+}
+// 전투 도중에 나갔다가 같은 방으로 돌아온 참가자: 방장이 알려 준 자리로 곧장 전투에 합류한다
+function rejoin(m){
+  gmode=m.mode==='horde'?'horde':'raid';$('bossNm').textContent=gmode==='horde'?'슬라임 떼':'대왕문어 타코';
+  m.sl.forEach((q,i)=>{const h=heroes[i];equip(h,q[0]);h.nick=q[1];h.off=!!q[2];h.remote=false;h.tx=undefined;});
+  boss.hpMax=m.hp;boss.stgMax=m.stg;assign(m.me);my.cls=heroes[m.me].ci;my.st='game';my.ready=false;push();
+  reset();PUP=true;NET.snap=null;NET.one={};
+  screen('game');state='fight';lightsTo(true);caveG.visible=false;portalA.g.visible=false;crack.visible=false;boss.g.visible=gmode==='raid';boss.g.position.set(0,0,0);camInit=false;camYaw=0;fadeEl.style.opacity=0;
+  if(cam.view)cam.clearViewOffset();lobOff=0;toast('전투에 다시 합류했어요');
+}
 /* ---------- 닉네임, 메인 화면, 방, 대기실 ---------- */
 const store={get(k){try{return localStorage.getItem(k);}catch(e){return null;}},set(k,v){try{localStorage.setItem(k,v);}catch(e){}}};
 const cleanNick=v=>typeof v==='string'?v.replace(/[\u0000-\u001f<>]/g,'').trim().slice(0,8):'';
 const my={nick:cleanNick(store.get('raidNick')||''),mode:store.get('raidMode')==='1'?1:0,ai:[0,1,2].includes(+store.get('raidAi'))&&store.get('raidAi')!==null?+store.get('raidAi'):2,cls:-1,pt:0,ready:false,ts:0,host:false,go:0,st:'lobby'};
+{const g=store.get('optGfx');if(g==='0'||g==='1'||g==='2')opt.gfx=+g;['bgm','sfx','buzz'].forEach(k=>{if(store.get('opt'+k)==='0')opt[k]=false;});applyOpt();}
 const net={base:null,rm:null,code:'',solo:true,seenGo:0,hadHost:false,off:null};
 const show=(id,on)=>{$(id).hidden=!on;};
 function screen(name){   // nick | menu | join | lobby | game
   ['title','nick','menu','joinP','lobby'].forEach(id=>show(id,id===(name==='join'?'joinP':name)));
-  show('hud',name==='game');show('setP',false);show('help',false);
+  show('hud',name==='game');show('setP',false);show('help',false);show('quitP',false);
   tags.forEach(t=>{t.hidden=name!=='lobby'&&name!=='menu'&&name!=='join'&&name!=='nick';});
   state=name==='game'?state:name;
 }
@@ -3130,8 +3180,7 @@ function renderLobby(){
     r.appendChild(a);r.appendChild(b);mem.appendChild(r);
   });
   [0,1,2].forEach(k=>{$('cls'+k).classList.toggle('mine',my.cls===k);});
-  const an=roomAi();[0,1,2].forEach(k=>{$('ai'+k).classList.toggle('mine',an===k);$('ai'+k).disabled=!(net.solo||!!(mine&&mine.host));});
-  $('setNote').textContent=net.solo||(mine&&mine.host)?'인원이 적으면 적의 체력과 수도 줄어들어요.':'방장만 바꿀 수 있어요.';
+  renderSet();
   const md=roomMode(),canMode=net.solo||!!(mine&&mine.host);
   [0,1].forEach(k=>{$('mode'+k).classList.toggle('mine',md===k);$('mode'+k).disabled=!canMode;$('mode'+k).setAttribute('aria-pressed',md===k);});
   slots().forEach((sl,i)=>{   // 대기실의 토끼가 고른 직업의 장비를 든다
@@ -3170,6 +3219,7 @@ function leaveRoom(msg){
   if(net.rm){try{net.rm.leave().catch(()=>{});}catch(e){}net.rm=null;}
   if(net.base&&my.host)net.base.presence({open:null}).catch(()=>{});
   my.host=false;net.solo=true;my.cls=-1;my.ready=false;PUP=false;show('end',false);$('clear').hidden=true;
+  heroes.forEach(h=>{h.off=false;h.remote=h.human=false;h.tx=undefined;h.cheer=false;});reset();placeLobby();   // 전투 도중에 나왔어도 대기실 모습으로 되돌린다
   screen('menu');renderMenu();if(msg)toast(msg);
 }
 function renderMenu(){
@@ -3208,7 +3258,12 @@ $('leave').addEventListener('click',()=>leaveRoom());
 function helpTab(k){if(!document.querySelectorAll)return;document.querySelectorAll('.ht,.hs').forEach(e=>e.classList.toggle('on',e.dataset.t===k));const p=document.querySelector('.helpP');if(p)p.scrollTop=0;}
 if(document.querySelectorAll)document.querySelectorAll('.ht').forEach(b=>b.addEventListener('click',()=>{sfx('pick');helpTab(b.dataset.t);}));
 ['helpBtn','helpBtn2'].forEach(id=>$(id).addEventListener('click',()=>{helpTab(my.cls>=0?'ghp'[my.cls]:'c');show('help',true);}));$('helpClose').addEventListener('click',()=>show('help',false));
-$('setBtn').addEventListener('click',()=>{sfx('pick');show('setP',true);});$('setClose').addEventListener('click',()=>show('setP',false));
+['setBtn','setBtn0','menuBtn'].forEach(id=>$(id).addEventListener('click',()=>{sfx('pick');renderSet();show('setP',true);}));
+if(document.querySelectorAll)document.querySelectorAll('#gfxSeg button').forEach(b=>b.addEventListener('click',()=>{opt.gfx=+b.dataset.v;store.set('optGfx',String(opt.gfx));sfx('pick');applyOpt();renderSet();}));
+[['optBgm','bgm'],['optSfx','sfx'],['optBuzz','buzz']].forEach(([id,k])=>$(id).addEventListener('click',()=>{opt[k]=!opt[k];store.set('opt'+k,opt[k]?'1':'0');applyOpt();sfx('pick');if(k==='buzz'&&opt.buzz)impact('crit');renderSet();}));
+$('quitBtn').addEventListener('click',()=>{$('quitNote').textContent=net.solo||!net.rm?'지금까지의 전투는 사라져요.':my.host?'방장이 나가면 방이 닫히고 모두 메인 화면으로 돌아가요.':'내 토끼는 동료 AI가 이어받아요. 같은 방 코드로 다시 들어오면 이어서 싸울 수 있어요.';show('quitP',true);});
+$('quitNo').addEventListener('click',()=>show('quitP',false));
+$('quitYes').addEventListener('click',()=>{show('quitP',false);show('setP',false);leaveRoom();});$('setClose').addEventListener('click',()=>show('setP',false));
 [0,1,2].forEach(k=>$('cls'+k).addEventListener('click',()=>{
   my.cls=my.cls===k?-1:k;my.pt=Date.now();my.ready=false;sfx('pick');push();renderLobby();
   const i=slots().findIndex(q=>q.me);if(i>=0)boing(heroes[i].b,1.8);
@@ -3217,7 +3272,7 @@ $('setBtn').addEventListener('click',()=>{sfx('pick');show('setP',true);});$('se
   if(!(net.solo||my.host)||my.mode===k)return;
   my.mode=k;store.set('raidMode',String(k));sfx('pick');push();renderLobby();
 }));
-[0,1,2].forEach(k=>$('ai'+k).addEventListener('click',()=>{if(!(net.solo||my.host)||my.ai===k)return;my.ai=k;store.set('raidAi',String(k));sfx('pick');push();renderLobby();}));
+[0,1,2].forEach(k=>$('ai'+k).addEventListener('click',()=>{if(!(state!=='lobby'||net.solo||my.host)||my.ai===k)return;my.ai=k;store.set('raidAi',String(k));sfx('pick');push();renderLobby();renderSet();}));
 $('ready').addEventListener('click',()=>{if(my.cls<0)return;my.ready=!my.ready;sfx('heal');push();renderLobby();});
 $('start').addEventListener('click',()=>{
   const ms=members();if(my.cls<0||!ms.every(m=>m.cls>=0&&m.ready))return;
@@ -3253,7 +3308,7 @@ function placeLobby(){
 function startGame(){
   gmode=roomMode()===1?'horde':'raid';$('bossNm').textContent=gmode==='horde'?'슬라임 떼':'대왕문어 타코';
   const sl=slots();sl.forEach((q,i)=>{equip(heroes[i],q.ci<0?i:q.ci);heroes[i].nick=q.ai?'':q.nick;heroes[i].off=!!q.none;
-    const rem=GH&&!net.solo&&my.host&&!q.ai&&!q.none&&!q.me;heroes[i].remote=rem;heroes[i].peer=rem?q.id:'';heroes[i].rin={};heroes[i].tx=undefined;});
+    const rem=GH&&!net.solo&&my.host&&!q.ai&&!q.none&&!q.me;heroes[i].human=rem;heroes[i].remote=rem;heroes[i].peer=rem?q.id:'';heroes[i].rin={};heroes[i].tx=undefined;});
   PUP=GH&&!net.solo&&!my.host;NET.snap=null;NET.fx.length=0;NET.one={};
   {const n=heroes.filter(h=>!h.off).length,k=[0,0.3,0.65,1][n];boss.hpMax=80000*k;boss.stgMax=7500*k;}   // 인원이 적으면 타코의 체력도 줄어든다
   assign(Math.max(0,sl.findIndex(q=>q.me)));my.st='game';my.ready=false;push();
