@@ -1477,16 +1477,24 @@ function loadSamples(){   // 첫 터치 뒤에 한 번, 넣어 둔 효과음을 
   try{const bin=atob(BGM),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);AC.decodeAudioData(u.buffer,b=>{bufs.bgm=b;},()=>{});}catch(e){}
   try{const bin=atob(BGM2),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);AC.decodeAudioData(u.buffer,b=>{bufs.menu=b;},()=>{});}catch(e){}
 }
-let bgmSrc=null,bgmG=null,bgmNow='';
-function bgmTick(){   // 싸우는 동안에는 전투 음악, 그 밖에는 대기실 음악을 돌려 튼다 (둘 다 녹음된 곡)
-  if(!AC||!master)return;const fight=state==='fight'||state==='dying',want=fight?(bufs.bgm?'bgm':''):(bufs.menu?'menu':'');
+let bgmSrc=null,bgmG=null,bgmNow='',bgmEnd=0;const bgmAll=[];
+// 배경음악은 끝없이 도는 반복 재생(loop)을 쓰지 않고, 한 곡이 끝나기 직전에 게임이 다음 한 곡을 이어 붙인다.
+// 아이폰 홈 화면 웹앱은 닫힌 화면의 소리를 계속 내보내는 일이 있는데, 이렇게 하면 게임이 멈춘 화면은 다음 곡을 붙이지 못해 길어야 한 곡(30초 안팎) 뒤에 저절로 조용해진다
+function bgmStop(){bgmAll.forEach(s=>{try{s.stop();}catch(e){}});bgmAll.length=0;bgmSrc=null;bgmNow='';}
+function bgmQueue(at){
+  const s=AC.createBufferSource();s.buffer=bufs[bgmNow];s.connect(bgmG);s.start(at);bgmEnd=at+s.buffer.duration;
+  s.onended=()=>{const k=bgmAll.indexOf(s);if(k>=0)bgmAll.splice(k,1);};bgmAll.push(s);bgmSrc=s;
+}
+function bgmTick(){   // 싸우는 동안에는 전투 음악, 그 밖에는 대기실 음악 (둘 다 녹음된 곡)
+  if(!AC||!master||audioDead)return;const fight=state==='fight'||state==='dying',want=fight?(bufs.bgm?'bgm':''):(bufs.menu?'menu':'');
   if(bgmG)bgmG.gain.value=opt.bgm?(bgmNow==='bgm'?0.4:0.5):0;if(musicG)musicG.gain.value=opt.bgm&&!bgmNow&&!fight?0.5:0;   // 배경음악 켬/끔
-  if(want===bgmNow)return;
-  if(bgmSrc){try{bgmSrc.stop();}catch(e){}bgmSrc=null;}
-  bgmNow=want;   // 녹음된 곡이 풀리기 전까지만 합성음 가락이 나온다
-  if(!want)return;
-  if(!bgmG){bgmG=AC.createGain();bgmG.connect(AC.destination);}bgmG.gain.value=opt.bgm?(want==='bgm'?0.4:0.5):0;
-  bgmSrc=AC.createBufferSource();bgmSrc.buffer=bufs[want];bgmSrc.loop=true;bgmSrc.connect(bgmG);bgmSrc.start();
+  if(want!==bgmNow){
+    bgmStop();bgmNow=want;   // 녹음된 곡이 풀리기 전까지만 합성음 가락이 나온다
+    if(!want)return;
+    if(!bgmG){bgmG=AC.createGain();bgmG.connect(AC.destination);}bgmG.gain.value=opt.bgm?(want==='bgm'?0.4:0.5):0;
+    bgmQueue(AC.currentTime+0.05);return;
+  }
+  if(bgmNow&&AC.currentTime>bgmEnd-0.4)bgmQueue(Math.max(bgmEnd,AC.currentTime+0.02));   // 곡이 끝나기 직전에 다음 곡을 이어 붙인다
 }
 function smp(name,vol,rate,delay){
   const b=bufs[name]; if(!AC||!b)return false;
@@ -3169,7 +3177,7 @@ function finish(win){
 // 앱이 화면에서 사라지면 소리를 멈춘다. 홈 화면 웹앱은 닫아도 이전 화면이 뒤에 남아 음악을 계속 틀 수 있어서, 다시 열 때마다 음악이 겹치지 않게 한다
 function audioQuiet(off){
   if(!AC)return;
-  try{if(off){if(bgmSrc){try{bgmSrc.stop();}catch(e){}bgmSrc=null;bgmNow='';}AC.suspend();}else AC.resume();}catch(e){}
+  try{if(off){bgmStop();AC.suspend();}else AC.resume();}catch(e){}
 }
 document.addEventListener('visibilitychange',()=>audioQuiet(!!document.hidden));
 window.addEventListener('pagehide',()=>{audioQuiet(true);try{if(AC&&AC.close)AC.close();}catch(e){}AC=null;bgmG=null;});   // 화면을 떠날 때는 소리 장치를 아예 닫는다
@@ -3179,7 +3187,7 @@ let audioDead=false;
 try{const myTab=Math.random().toString(36).slice(2),ch=new window.BroadcastChannel('tokki-daesodong-audio');
   ch.onmessage=e=>{if(!e.data||e.data.id===myTab||audioDead)return;audioDead=true;audioQuiet(true);try{if(AC&&AC.close)AC.close();}catch(_){}AC=null;bgmG=null;};
   ch.postMessage({id:myTab});}catch(e){}
-$('ver').textContent='버전 1114-2259';
+$('ver').textContent='버전 1114-2336';
 /* ---------- 카드 뽑기 화면 ---------- */
 let cardCb=null,cardLeft=0;
 function showCards(o,gold,cb){
