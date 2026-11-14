@@ -75,6 +75,21 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
 .np.rev .rv,.np.rev .rvT{display:block}.np b{font-weight:400}
 .aiRow{display:flex;align-items:center;justify-content:center;gap:10px;font-size:.9rem;color:#d6ebe7}.aiRow .pill{font-size:1.05rem;padding:8px 18px}
 #setP,#help{z-index:6;background:rgba(3,14,17,.72)}#quitP{z-index:7;background:rgba(3,14,17,.8)}
+.cardW{width:min(100%,560px);display:grid;gap:14px;text-align:center}
+#cardP{z-index:5;background:rgba(3,14,17,.6)}
+#cardT{margin:0;font-size:1.7rem;font-weight:400;color:#7dffb0;text-shadow:0 2px 0 #0a3a2a,0 0 16px rgba(125,255,176,.7)}
+#cardN{margin:0;color:#d6ebe7;font-size:.95rem;text-shadow:0 1px 3px #000}
+#cards{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.card{display:grid;justify-items:center;align-content:start;gap:8px;padding:16px 6px 14px;min-height:190px;border-radius:16px;border:3px solid #7dffb0;color:#fff;cursor:pointer;
+  background:linear-gradient(#14463c,#0a2428);box-shadow:0 6px 0 #06181a,0 0 18px rgba(125,255,176,.35);animation:cardIn .5s cubic-bezier(.2,1.4,.4,1) both}
+.card svg{width:46px;height:46px;fill:#7dffb0;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
+.card strong{font-weight:400;font-size:1.02rem;line-height:1.2;text-wrap:balance}.card span{font-size:.84rem;line-height:1.35;color:#d6ebe7;text-wrap:balance}
+.card:active{transform:translateY(4px);box-shadow:0 2px 0 #06181a}
+@keyframes cardIn{from{opacity:0;transform:translateY(60px) rotateY(90deg) scale(.7)}}
+#cardP.gold #cardT{color:#ffd23f;text-shadow:0 2px 0 #7a4a00,0 0 18px rgba(255,210,63,.9)}
+#cardP.gold .card{border-color:#ffd23f;background:linear-gradient(#7a5a12,#3a2a08);box-shadow:0 6px 0 #241a04,0 0 26px rgba(255,210,63,.75)}
+#cardP.gold .card svg{fill:#ffe27a}#cardP.gold .card strong{color:#ffe27a}
+@media (prefers-reduced-motion:reduce){.card{animation:none}}
 .srow{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:1rem;color:#d6ebe7;text-align:left}.seg{display:flex;gap:6px}
 #setP .pill{font-size:.98rem;padding:7px 14px;min-width:54px}#setP .pill.mine{background:rgba(230,194,90,.3);border-color:var(--gold);color:#fff}#setP .pill:disabled{opacity:.5}
 /* 화면이 바뀔 때: 배경은 스르륵, 패널은 아래에서 통 하고 올라온다 */
@@ -364,6 +379,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--teal);outline-o
     <button class="big" id="setClose" type="button">닫기</button>
   </div>
 </div>
+<div id="cardP" class="veil" hidden><div class="cardW"><h2 id="cardT"></h2><div id="cards"></div><p id="cardN"></p></div></div>
 <div id="quitP" class="veil" hidden>
   <div class="panel"><h2>게임에서 나갈까요?</h2><p id="quitNote"></p><button class="big" id="quitYes" type="button">나가기</button><button class="big alt" id="quitNo" type="button">계속하기</button></div>
 </div>
@@ -438,6 +454,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--teal);outline-o
     <h3>슬라임 떼 막기</h3>
     <ul>
       <li>사방에서 슬라임이 물결처럼 몰려옵니다. 두 물결마다 새로운 슬라임이 하나씩 섞여요. 한 물결을 다 잡으면 쓰러진 동료가 일어나고, 세 물결마다 물약을 하나 받습니다.</li>
+      <li><b>카드 뽑기</b> 3, 6, 9… 세 물결마다 카드 석 장 가운데 하나를 골라 그 판 동안 강해집니다(공격력, 공격 속도, 체력, 치명타, 회복 등). 킹슬라임을 잡으면 훨씬 강한 황금 카드를 뽑아요. 각자 따로 고르고, 16초 안에 안 고르면 첫 장이 선택됩니다.</li>
       <li><b>초록 슬라임</b> 다가와 몸으로 덮칩니다. 몸을 세우고 붉어지면 곧 덮치니 먼저 때려 끊거나 구르세요.</li>
       <li><b>더듬이 슬라임</b> (3물결~) 폴짝 뛰어올라 표시된 원 안에 내리찍습니다.</li>
       <li><b>불 슬라임</b> (5물결~) 멀리서 불덩이를 뱉고, 떨어진 자리에 불바닥이 남습니다.</li>
@@ -953,7 +970,7 @@ const heroes=SLOTS.map((k,i)=>{
   b.h=h; return h;
 });
 function fresh(h){Object.assign(h,{act:null,combo:0,comboT:9,hitN:0,stacks:0,stackT:0,ultT:0,ultCd:20,skCd:0,shieldUp:false,shieldT:9,counter:0,barrier:0,barrierT:0,
-  potions:3,drink:0,idle:0,fly:null,blink:null,plunge:false,wasAir:false,rollHeal:false,bash:null,threat:0,rev:0,invT:0,wardN:0,cheer:false,hop:false,st:{dmg:0,heal:0,taken:0,block:0,downs:0,legs:0,leg:0},sip:0,slx:0,slz:0,slip:false,claim:null,want:false,hold:false});}
+  potions:3,drink:0,idle:0,fly:null,blink:null,plunge:false,wasAir:false,rollHeal:false,bash:null,offers:null,cards:[],up:{atk:1,as:1,crit:0,critD:2,leech:0,def:1,ult:1,ultT:1,skcd:1,reach:0},threat:0,rev:0,invT:0,wardN:0,cheer:false,hop:false,st:{dmg:0,heal:0,taken:0,block:0,downs:0,legs:0,leg:0},sip:0,slx:0,slz:0,slip:false,claim:null,want:false,hold:false});}
 function equip(h,ci){   // 직업을 입힌다
   const k=CLS[ci],g=h.gear;h.k=k;h.ci=ci;h.cls=k.id;
   g.sword.visible=g.shield.visible=ci===0;g.hammer.visible=ci===1;g.gR.visible=g.gL.visible=g.band.visible=ci===2;g.fR.visible=g.fL.visible=false;g.potion.visible=false;
@@ -1636,7 +1653,8 @@ function hitHero(h,dmg,sx,sz,sure,light){   // sure: 구르기나 패링으로 �
     }
     h.st.block+=dmg*0.5;dmg*=0.5;if(h===me)pop('막기',b);if(!smp('clang',h===me?0.9:0.25,rr()))sfx('land',h!==me);burst(b.root.position.x+Math.sin(b.face)*0.7,1.1,b.root.position.z+Math.cos(b.face)*0.7,5,0xcfe6ff,5,0.3);
   }
-  if(warded(h)){h.st.block+=dmg*0.5;dmg*=0.5;}   // 수호 영역 안의 아군은 방어력이 올라 피해를 절반만 받는다
+  if(warded(h)){h.st.block+=dmg*0.5;dmg*=0.5;}
+  dmg*=h.up.def;   // 수호 영역 안의 아군은 방어력이 올라 피해를 절반만 받는다
   if(h.barrier>0){const a=Math.min(h.barrier,dmg);h.barrier-=a;dmg-=a;h.st.block+=a;}   // 방어게이지가 먼저 깎인다
   if(dmg<=0)return;
   if(h.cls==='grp'&&h.ultT<=0){h.hitN=0;h.stackT=0;if(h.stacks>0){h.stacks=0;if(h===me)pop('콤보 끊김',b);}}   // 맞으면 콤보 중첩이 사라진다
@@ -1650,7 +1668,7 @@ function fresh0(h){h.bash=null;h.act=null;h.shieldUp=false;h.drink=0;h.fly=null;
 const wardAt=(P,rad)=>heroes.some(g=>g.cls==='grd'&&g.ultT>0&&g.b.dead<=0&&dist(g.b.root.position,P)<5.2+rad);
 const ORIGIN={x:0,z:0};
 function amp(h,d,P,rad){   // 피해 보정: 치명타(불주먹 중에는 확률 두 배), 타코야끼 버프, 수호 영역의 방어력 감소
-  const crit=!!h&&Math.random()<CRIT*(h.cls==='grp'&&h.ultT>0?2:1);if(crit)d*=2;
+  const crit=!!h&&Math.random()<(CRIT+h.up.crit)*(h.cls==='grp'&&h.ultT>0?2:1);if(crit)d*=h.up.critD;
   if(tacoT>0)d*=1.3;if(wardAt(P,rad))d*=1+WARD_DEF;
   return [d,crit];
 }
@@ -1703,7 +1721,7 @@ function targetOf(h){   // 수정이 있으면 수정을, 없으면 보스를 �
 // 근접 타격: 앞쪽 부채꼴 안의 보스와 수정을 때린다. 준 피해를 돌려준다
 function melee(h,dmg,reach,wide,a){   // a: 지금의 공격 동작 (연출용)
   const b=h.b,R=b.root.position,fx=Math.sin(b.face),fz=Math.cos(b.face),dB=Math.hypot(R.x,R.z)||1;
-  let dealt=0;b.fanT=0.2;
+  let dealt=0;b.fanT=0.2;dmg*=h.up.atk;reach+=h.up.reach;
   if(h.cls==='grd'&&h.ultT>0){   // 수호 영역 안의 아군 하나마다 가디언의 공격이 더 세진다
     h.wardN=heroes.filter(q=>q!==h&&q.b.dead<=0&&dist(q.b.root.position,R)<5.2).length;dmg*=1+WARD_ATK*h.wardN;
   }
@@ -1732,7 +1750,7 @@ function melee(h,dmg,reach,wide,a){   // a: 지금의 공격 동작 (연출용)
     if(first)hitFeel(h,A,first);
   }
   if(dealt>0){
-    h.idle=0;
+    h.idle=0;if(h.up.leech)heal(h,dealt*h.up.leech);
     if(h.cls==='grp'){   // 적을 열 번 맞힐 때마다 콤보 중첩이 하나 쌓이고, 맞히는 동안에만 유지된다
       h.stackT=3;if(a&&a.step!==undefined&&!a.heavy&&++h.hitN>=10){h.hitN=0;if(h.stacks<5){h.stacks++;pop('콤보! 중첩 '+h.stacks,b);}}}
     if(h.cls==='grd'&&h.ultT>0)heroes.forEach(a=>{   // 수호 영역 안의 아군에게 방어게이지
@@ -1792,13 +1810,13 @@ const mobD=new T.Object3D(),mobC=new T.Color(),mobZ=new T.Matrix4().makeScale(0,
 for(let i=0;i<MOB_MAX;i++){mobs.push({i,mob:true,on:false,die:0,x:0,z:0,r:0.45,s:1,type:'slime',T:MOB_T.slime});for(const k in MOB_MESH){MOB_MESH[k].setMatrixAt(i,mobZ);MOB_MESH[k].setColorAt(i,mobC.setRGB(1,1,1));}}
 const horde={wave:0,queue:[],gates:[0],t:0,rest:0,kills:0,total:1,left:0,sndT:0,pc:1};
 function hordeReset(){
-  mobs.forEach(m=>{m.on=false;m.die=0;});Object.assign(horde,{wave:0,queue:[],t:0,rest:1.2,kills:0,total:1,left:0,sndT:0});
+  mobs.forEach(m=>{m.on=false;m.die=0;});horde.pick=null;Object.assign(horde,{wave:0,queue:[],t:0,rest:1.2,kills:0,total:1,left:0,sndT:0});
   heroes.forEach(h=>{h.kills=0;});mobDraw(0);
 }
 function spawnMob(type,ang,w){
   const m=mobs.find(q=>!q.on&&q.die<=0);if(!m)return false;
   const t=MOB_T[type],r=ARENA-0.6-Math.random()*1.6,s=t.s*(type==='king'?1:0.92+Math.random()*0.16);
-  Object.assign(m,{on:true,type,T:t,s,r:0.45*s,x:Math.sin(ang)*r,z:Math.cos(ang)*r,face:ang+Math.PI,hp:t.hp*(1+0.1*(w-1))*(type==='king'?horde.pc:1),dmg:t.dmg*(1+0.05*(w-1)),
+  Object.assign(m,{on:true,type,T:t,s,r:0.45*s,x:Math.sin(ang)*r,z:Math.cos(ang)*r,face:ang+Math.PI,hp:t.hp*(1+0.12*(w-1)+0.012*(w-1)*(w-1))*(type==='king'?horde.pc:1),dmg:t.dmg*(1+0.09*(w-1)),   // 카드로 강해지는 만큼 뒤로 갈수록 적도 가파르게 세진다
     ph:Math.random()*6,atk:0,cd:0.6+Math.random()*1.2,kx:0,kz:0,flash:0,burn:0,burnBy:null,stun:0,ward:0,born:0.4,lunge:0,mv:0,y:0,st:null,k:0,rollV:0});
   return m;
 }
@@ -1837,6 +1855,43 @@ function killMob(m,h){
     heroes.forEach(q=>{if(!q.off&&q.potions<3)q.potions++;});}
   // 불주먹 중인 격투토끼는 곁에서 적이 쓰러지면 누가 처치했든 다음 적에게 순보한다. 지속시간은 직접 처치했을 때만 늘어난다
   heroes.forEach(g=>{if(g.cls!=='grp'||g.ultT<=0||g.b.dead>0)return;if(g===h)stoke(g,0.5);if(g===h||dist(g.b.root.position,m)<3.2+m.r)chain(g);});
+}
+/* ----- 카드 뽑기: 세 물결마다 석 장 가운데 하나를 골라 그 판 동안 강해진다. 킹슬라임을 잡으면 황금 카드 ----- */
+const CARDS=[
+  {id:'atk',ic:'sword',n:'날카로운 이빨',d:'공격력 +15%',f:h=>{h.up.atk*=1.15;}},
+  {id:'as',ic:'fist',n:'날쌘 앞발',d:'공격 속도 +12%',f:h=>{h.up.as*=1.12;}},
+  {id:'hp',ic:'shield',n:'든든한 당근',d:'최대 체력 +20%',f:h=>{const a=h.b.hpMax*0.2;h.b.hpMax+=a;h.b.hp+=a;}},
+  {id:'spd',ic:'jump',n:'가벼운 발',d:'이동 속도 +10%',f:h=>{h.b.speed*=1.1;}},
+  {id:'crit',ic:'star',n:'행운의 클로버',d:'치명타 확률 +8%',f:h=>{h.up.crit+=0.08;}},
+  {id:'leech',ic:'potion',n:'달콤한 한 입',d:'준 피해의 3%만큼 회복',f:h=>{h.up.leech+=0.03;}},
+  {id:'def',ic:'shield',n:'폭신한 털',d:'받는 피해 -10%',f:h=>{h.up.def*=0.9;}},
+  {id:'ult',ic:'star',n:'달빛 충전',d:'필살 대기시간 -15%',f:h=>{h.up.ult*=0.85;h.ultCd*=0.85;}},
+  {id:'sk',ic:'roll',n:'재빠른 손놀림',d:'보조 스킬 대기시간 -20%',f:h=>{h.up.skcd*=0.8;}},
+  {id:'pot',ic:'potion',n:'물약 한 병',d:'물약 +1, 체력 30% 회복',f:h=>{h.potions++;heal(h,h.b.hpMax*0.3);}}];
+const GCARDS=[
+  {id:'gAtk',g:1,ic:'sword',n:'황금 당근검',d:'공격력 +40%',f:h=>{h.up.atk*=1.4;}},
+  {id:'gHp',g:1,ic:'shield',n:'황금 갑옷',d:'최대 체력 +50%, 완전 회복',f:h=>{h.b.hpMax*=1.5;heal(h,h.b.hpMax);}},
+  {id:'gCrit',g:1,ic:'star',n:'황금 눈',d:'치명타 피해 3배, 확률 +10%',f:h=>{h.up.critD=3;h.up.crit+=0.1;}},
+  {id:'gLeech',g:1,ic:'potion',n:'황금 꿀단지',d:'준 피해의 8%만큼 회복',f:h=>{h.up.leech+=0.08;}},
+  {id:'gUlt',g:1,ic:'star',n:'황금 달',d:'필살 지속 +50%, 대기 -25%',f:h=>{h.up.ultT*=1.5;h.up.ult*=0.75;h.ultCd*=0.75;}},
+  {id:'gReach',g:1,ic:'fist',n:'황금 장갑',d:'공격 범위 +30%, 속도 +15%',f:h=>{h.up.reach+=0.55;h.up.as*=1.15;}}];
+const ALLC={};CARDS.concat(GCARDS).forEach(q=>{ALLC[q.id]=q;});
+function startPick(gold){
+  const pool=gold?GCARDS:CARDS;horde.pick={gold,t:16,wait:[]};
+  heroes.forEach(h=>{if(h.off)return;
+    const o=pool.slice().sort(()=>Math.random()-0.5).slice(0,3).map(q=>q.id);h.offers=o;
+    if(h===me&&!AUTO){horde.pick.wait.push(h);showCards(o,gold,id=>takeCard(h,id));}
+    else if(h.remote){const cn=NET.conns.find(q=>q.peer===h.peer);if(cn){horde.pick.wait.push(h);try{cn.send({t:'c',o,g:gold?1:0});}catch(e){}}else takeCard(h,o[0]);}
+    else takeCard(h,o[Math.floor(Math.random()*3)]);});   // 동료 AI는 아무거나 고른다
+}
+function takeCard(h,id){
+  if(!h.offers||h.offers.indexOf(id)<0)return;const q=ALLC[id];h.offers=null;q.f(h);h.cards.push(id);
+  if(horde.pick){const i=horde.pick.wait.indexOf(h);if(i>=0)horde.pick.wait.splice(i,1);}
+  const R=h.b.root.position;burst(R.x,1.5,R.z,14,q.g?0xffd23f:0x7dffb0,6,0.55);puff(R.x,R.z,q.g?0xffd23f:0x7dffb0,2.4);
+}
+function pickTick(dt){   // 모두 고르거나 시간이 다 되면 다음 물결로 넘어간다
+  const p=horde.pick;p.t-=dt;if(p.t<=0)p.wait.slice().forEach(h=>takeCard(h,h.offers[0]));
+  if(!p.wait.length){horde.pick=null;hideCards();}
 }
 /* ----- 슬라임마다 다른 공격 ----- */
 function mobHit(t,dmg){heroes.forEach(h=>{if(h.b.dead<=0&&inTele(t,h.b.root.position,0.2))hitHero(h,dmg,t.x,t.z);});}
@@ -1883,12 +1938,13 @@ function mobTick(dt){
   boss.clock+=dt;
   const hs=alive();let n=0;for(const m of mobs)if(m.on)n++;
   horde.left=n+horde.queue.length;
-  if(horde.rest>0){horde.rest-=dt;if(horde.rest<=0)nextWave();}
+  if(horde.pick)pickTick(dt);
+  else if(horde.rest>0){horde.rest-=dt;if(horde.rest<=0)nextWave();}
   else if(horde.queue.length){
     horde.t-=dt;
     if(horde.t<=0&&n<MOB_MAX-2){spawnMob(horde.queue.pop(),pick(horde.gates)+(Math.random()-0.5)*0.9,horde.wave);horde.t=Math.max(0.1,0.42-horde.wave*0.03);}
   }else if(n===0&&hs.length){   // 한 물결을 다 막았다: 쓰러진 동료가 일어나고, 세 물결마다 포션을 하나 받는다
-    horde.rest=3.5;
+    horde.rest=3.5;if(horde.wave%10===0)startPick(true);else if(horde.wave%3===0)startPick(false);   // 세 물결마다 카드 뽑기, 킹슬라임을 잡으면 황금 카드
     heroes.forEach(h=>{const b=h.b;if(b.dead>0&&!h.off){b.dead=0;b.hp=b.hpMax*0.4;b.sta=100;b.kx=b.kz=0;b.roll=-1;h.rev=0;pop('부활!',b);}
       if(horde.wave%3===0&&h.potions<3)h.potions++;});
     toast(horde.wave+'번째 물결을 막아냈어요'+(horde.wave%3===0?' · 포션 +1':''));sfx('heal');
@@ -2028,7 +2084,7 @@ function startAttack(h){
     if(h.cls==='grd'&&h.counter>0){h.counter=0;h.act=Object.assign({t:0,done:false,step:-1},COUNTER);pop('반격!',b);return;}
     const a=COMBO[h.cls][h.combo];h.act=Object.assign({t:0,done:false,step:h.combo,last:h.combo===2},a);
   }
-  h.combo++;whoosh(h);boing(b,0.7);
+  h.act.dur/=h.up.as;h.combo++;whoosh(h);boing(b,0.7);
 }
 function heroTick(h,c,dt){   // 한 프레임 동안의 공격, 스킬, 버프 처리
   const b=h.b,R=b.root.position,k=h.cls;
@@ -2133,7 +2189,7 @@ function useSkill(h){   // 보조 스킬
     h.bash={t:0,a,dx:Math.sin(a),dz:Math.cos(a),hit:false,parry:false};h.act=null;h.shieldUp=false;
     ghostTrail({x0:R.x,z0:R.z,x1:R.x+Math.sin(a)*5,z1:R.z+Math.cos(a)*5,dur:0.34},0x9fd0ff,4);
     if(!smp('whoosh2',h===me?0.8:0.2,0.8))sfx('dash',h!==me);smp('clang',h===me?0.35:0.1,0.7);
-    h.skCd=h.k.skCd;return true;
+    h.skCd=h.k.skCd*h.up.skcd;return true;
   }
   if(h.cls==='ham'){
     const a=isHuman(h)?b.face:Math.atan2(tg.x-R.x,tg.z-R.z);b.face=a;
@@ -2145,11 +2201,11 @@ function useSkill(h){   // 보조 스킬
     else{const fa=boss.g.rotation.y;x=-Math.sin(fa)*(BOSS_R+1.2);z=-Math.cos(fa)*(BOSS_R+1.2);}   // 보스가 보는 반대편
     h.blink={t:0,x0:R.x,z0:R.z,x1:x,z1:z};ghostTrail(h.blink,h.ultT>0?0xff5a1f:0xffb070,5);h.act=null;sfx('portal',h!==me);puff(R.x,R.z,0xff9f6a,2);
   }
-  h.skCd=h.k.skCd;return true;
+  h.skCd=h.k.skCd*h.up.skcd;return true;
 }
 function useUlt(h){   // 필살 스킬
   if(h.ultCd>0||h.b.dead>0||state!=='fight'||h.drink>0)return false;
-  h.ultT=ULT_T[h.ci];h.ultCd=ULT_CD;h.idle=0;
+  h.ultT=ULT_T[h.ci]*h.up.ultT;h.ultCd=ULT_CD*h.up.ult;h.idle=0;
   if(h.cls==='grp'){h.stacks=5;h.stackT=3;}
   pop(h.k.ult+'!',h.b);if(!smp(h.cls==='grp'?'fire':h.cls==='ham'?'growl':'parry',h===me?1:0.35,h.cls==='grd'?0.7:1))sfx('roar',h!==me);if(h===me)impact('crit');puff(h.b.root.position.x,h.b.root.position.z,0xe6c25a,6);
   return true;
@@ -3009,7 +3065,8 @@ function ghJoin(name){
                 try{c.send({t:'g',mode:gmode,me:h.idx,sl:heroes.map(q=>[q.ci,q.nick,q.off?1:0]),hp:boss.hpMax,stg:boss.stgMax});}catch(e){}
                 toast(nk+' 님이 돌아왔어요');cast();return;}
             }
-            if(m.t==='p'){if(!c.inn)return;roster.set(c.peer,m.p);cast();}else if(m.t==='i'){const h=heroes.find(q=>q.remote&&q.peer===c.peer);if(h)netOnInput(h,m.i);}});
+            if(m.t==='p'){if(!c.inn)return;roster.set(c.peer,m.p);cast();}else if(m.t==='i'){const h=heroes.find(q=>q.remote&&q.peer===c.peer);if(h)netOnInput(h,m.i);}
+            else if(m.t==='k'){const h=heroes.find(q=>q.remote&&q.peer===c.peer);if(h)takeCard(h,m.id);}});
           const bye=()=>{const i=NET.conns.indexOf(c);if(i>=0)NET.conns.splice(i,1);roster.delete(c.peer);heroes.forEach(h=>{if(h.peer===c.peer){h.remote=false;h.peer='';if(state==='fight')toast(h.nick+' 님이 나갔어요. 동료 AI가 이어받아요');}});cast();};   // 나간 사람의 토끼는 동료 AI가 이어받는다
           c.on('close',bye);c.on('error',bye);
         });
@@ -3017,7 +3074,7 @@ function ghJoin(name){
         const c=peer.connect(HID,{reliable:true,serialization:'json'});rm.conn=c;
         const to=setTimeout(()=>{if(!done){done=true;try{peer.destroy();}catch(_){}fail(new Error('timeout'));}},9000);
         c.on('open',()=>{clearTimeout(to);if(!done){done=true;ok(rm);}});
-        c.on('data',m=>{if(!m)return;if(m.t==='r'){roster.clear();m.l.forEach(e=>roster.set(e[0],e[1]));fire();}else if(m.t==='g')rejoin(m);else if(m.t==='x'){drop();toast(m.why==='busy'?'이미 전투 중인 방이에요':'방이 가득 찼어요');}else netOnData(m);});
+        c.on('data',m=>{if(!m)return;if(m.t==='r'){roster.clear();m.l.forEach(e=>roster.set(e[0],e[1]));fire();}else if(m.t==='g')rejoin(m);else if(m.t==='c'){if(state==='fight')showCards(m.o,!!m.g,id=>{try{c.send({t:'k',id});}catch(e){}});}else if(m.t==='x'){drop();toast(m.why==='busy'?'이미 전투 중인 방이에요':'방이 가득 찼어요');}else netOnData(m);});
         c.on('close',drop);c.on('error',drop);
       }
     });
@@ -3100,6 +3157,16 @@ function finish(win){
   meter();$('end').hidden=false;sfx(win?'win':'ko');
 }
 
+/* ---------- 카드 뽑기 화면 ---------- */
+let cardCb=null,cardLeft=0;
+function showCards(o,gold,cb){
+  cardCb=cb;cardLeft=14;const box=$('cards');box.textContent='';$('cardT').textContent=gold?'황금 카드 뽑기!':'카드 뽑기';$('cardP').classList.toggle('gold',!!gold);
+  o.forEach((id,i)=>{const q=ALLC[id],b=document.createElement('button');b.type='button';b.className='card';b.style.animationDelay=(i*0.12)+'s';
+    b.innerHTML='<svg><use href="#i-'+q.ic+'"/></svg><strong></strong><span></span>';b.querySelector('strong').textContent=q.n;b.querySelector('span').textContent=q.d;
+    b.addEventListener('click',()=>{if(!cardCb)return;const f=cardCb;cardCb=null;sfx('heal');toast(q.n+' · '+q.d);show('cardP',false);f(id);});box.appendChild(b);});
+  show('cardP',true);sfx(gold?'win':'heal');
+}
+function hideCards(){cardCb=null;show('cardP',false);}
 /* ---------- 설정: 그래픽, 배경음악, 효과음, 진동 ---------- */
 const opt={gfx:2,bgm:true,sfx:true,buzz:true};
 function applyOpt(){
@@ -3133,7 +3200,7 @@ const net={base:null,rm:null,code:'',solo:true,seenGo:0,hadHost:false,off:null};
 const show=(id,on)=>{$(id).hidden=!on;};
 function screen(name){   // nick | menu | join | lobby | game
   ['title','nick','menu','joinP','lobby'].forEach(id=>show(id,id===(name==='join'?'joinP':name)));
-  show('hud',name==='game');show('setP',false);show('help',false);show('quitP',false);
+  show('hud',name==='game');hideCards();show('setP',false);show('help',false);show('quitP',false);
   tags.forEach(t=>{t.hidden=name!=='lobby'&&name!=='menu'&&name!=='join'&&name!=='nick';});
   state=name==='game'?state:name;
 }
@@ -3483,6 +3550,7 @@ function hud(dt){
   stunT.hidden=gmode==='horde';inkEl.style.opacity=Math.min(1,Math.max(0,blindT)*1.5);
   heroes.forEach((h,i)=>{frames[i].fill.style.transform='scaleX('+h.b.hp/h.b.hpMax+')';frames[i].row.classList.toggle('down',h.b.dead>0);});
   plateTick();
+  if(cardCb&&dt){cardLeft-=dt;$('cardN').textContent='하나를 골라 주세요 · '+Math.max(0,Math.ceil(cardLeft))+'초';if(cardLeft<=0&&PUP)hideCards();}
   staEl.style.transform='scaleX('+player.sta/100+')';staT.classList.toggle('no',player.noSta>0);
   heroes.forEach((h,i)=>{frames[i].bar.style.transform='scaleX('+Math.min(1,h.barrier/h.b.hpMax)+')';});
   skillBtn.classList.toggle('cd',me.skCd>0);skillBtn.textContent=me.skCd>0?Math.ceil(me.skCd):me.k.skill;
