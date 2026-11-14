@@ -398,7 +398,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--teal);outline-o
       <li><b>기력</b> 체력 아래 노란 줄. 점프와 구르기에 씁니다.</li>
       <li><b>필살 스킬</b> 60초마다 쓸 수 있고, 적에게 피해를 줄수록 더 빨리 돌아옵니다.</li>
       <li><b>치명타</b> 확률 15%, 피해 두 배.</li>
-      <li><b>부활</b> 동료가 쓰러지면 그 자리에 해골 표시가 뜹니다. 곁에 3초 서 있으면 "부활 중" 게이지가 차고 동료가 일어납니다.</li>
+      <li><b>부활</b> 동료가 쓰러지면 그 자리에 해골 표시가 뜹니다. 곁에 3초 서 있으면 "부활 중" 게이지가 차고 동료가 일어납니다. 동료 AI는 맞더라도 물러서지 않고 일으키러 옵니다. 사람이 모두 쓰러진 채 20초가 지나면 전멸로 끝나요.</li>
     </ul>
     <h3>버프 아이콘 <small>내 체력 아래에 나옵니다</small></h3>
     <ul class="bl">
@@ -454,7 +454,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--teal);outline-o
     <h3>슬라임 떼 막기</h3>
     <ul>
       <li>사방에서 슬라임이 물결처럼 몰려옵니다. 두 물결마다 새로운 슬라임이 하나씩 섞여요. 한 물결을 다 잡으면 쓰러진 동료가 일어나고, 세 물결마다 물약을 하나 받습니다.</li>
-      <li><b>카드 뽑기</b> 3, 6, 9… 세 물결마다 카드 석 장 가운데 하나를 골라 그 판 동안 강해집니다(공격력, 공격 속도, 체력, 치명타, 회복 등). 킹슬라임을 잡으면 훨씬 강한 황금 카드를 뽑아요. 각자 따로 고르고, 16초 안에 안 고르면 첫 장이 선택됩니다.</li>
+      <li><b>카드 뽑기</b> 2, 4, 6… 두 물결마다 카드 석 장 가운데 하나를 골라 그 판 동안 강해집니다(공격력, 공격 속도, 체력, 치명타, 회복 등). 킹슬라임을 잡으면 훨씬 강한 황금 카드를 뽑아요. 각자 따로 고르고, 16초 안에 안 고르면 첫 장이 선택됩니다.</li>
       <li><b>초록 슬라임</b> 다가와 몸으로 덮칩니다. 몸을 세우고 붉어지면 곧 덮치니 먼저 때려 끊거나 구르세요.</li>
       <li><b>더듬이 슬라임</b> (3물결~) 폴짝 뛰어올라 표시된 원 안에 내리찍습니다.</li>
       <li><b>불 슬라임</b> (5물결~) 멀리서 불덩이를 뱉고, 떨어진 자리에 불바닥이 남습니다.</li>
@@ -1944,7 +1944,7 @@ function mobTick(dt){
     horde.t-=dt;
     if(horde.t<=0&&n<MOB_MAX-2){spawnMob(horde.queue.pop(),pick(horde.gates)+(Math.random()-0.5)*0.9,horde.wave);horde.t=Math.max(0.1,0.42-horde.wave*0.03);}
   }else if(n===0&&hs.length){   // 한 물결을 다 막았다: 쓰러진 동료가 일어나고, 세 물결마다 포션을 하나 받는다
-    horde.rest=3.5;if(horde.wave%10===0)startPick(true);else if(horde.wave%3===0)startPick(false);   // 세 물결마다 카드 뽑기, 킹슬라임을 잡으면 황금 카드
+    horde.rest=3.5;if(horde.wave%10===0)startPick(true);else if(horde.wave%2===0)startPick(false);   // 두 물결마다 카드 뽑기, 킹슬라임을 잡으면 황금 카드
     heroes.forEach(h=>{const b=h.b;if(b.dead>0&&!h.off){b.dead=0;b.hp=b.hpMax*0.4;b.sta=100;b.kx=b.kz=0;b.roll=-1;h.rev=0;pop('부활!',b);}
       if(horde.wave%3===0&&h.potions<3)h.potions++;});
     toast(horde.wave+'번째 물결을 막아냈어요'+(horde.wave%3===0?' · 포션 +1':''));sfx('heal');
@@ -2024,13 +2024,14 @@ function aiHorde(h,dt){
   let go=null,stop=0.5,act=true;
   if(tgt.mob){go=tgt;stop=tgt.rad+reach*0.65;}
   else if(h!==me){const P=me.b.root.position;if(dist(P,R)>4){go=P;stop=3;}}
-  const down=heroes.filter(q=>q.b.dead>0&&!q.off);
+  let helpD=null;const down=heroes.filter(q=>q.b.dead>0&&!q.off);
   if(down.length){
     const d=down[0],helpers=alive().filter(q=>!isHuman(q)).sort((p,q)=>dist(p.b.root.position,d.b.root.position)-dist(q.b.root.position,d.b.root.position));
-    if(helpers[0]===h){go=d.b.root.position;stop=1.2;if(dist(R,d.b.root.position)<1.9)act=false;}
+    if(helpers[0]===h){helpD=d.b.root.position;go=d.b.root.position;stop=1.2;if(dist(R,d.b.root.position)<1.9)act=false;}
   }
-  {const pd=puddleAt(R);if(pd&&pd.fire){const d=dist(R,pd)||1;go={x:R.x+(R.x-pd.x)/d*4,z:R.z+(R.z-pd.z)/d*4};stop=0;}}
+  {const pd=puddleAt(R);if(pd&&pd.fire&&!helpD){const d=dist(R,pd)||1;go={x:R.x+(R.x-pd.x)/d*4,z:R.z+(R.z-pd.z)/d*4};stop=0;}}
   for(const t of teles){
+    if(helpD)break;   // 쓰러진 동료를 일으키러 가는 중에는 맞더라도 물러서지 않는다
     if(t.kind!=='avoid'||t.t<0.2||!inTele(t,R,0.6))continue;
     let ux,uz;if(t.shape==='rect'){const sn=Math.sin(t.ang),cs=Math.cos(t.ang),la=(R.x-t.x)*cs-(R.z-t.z)*sn,sg=la>=0?1:-1;ux=cs*sg;uz=-sn*sg;}else{const d=dist(R,t)||1;ux=(R.x-t.x)/d;uz=(R.z-t.z)/d;}
     go={x:R.x+ux*5,z:R.z+uz*5};stop=0;act=false;if(t.dur-t.t<0.15&&b.roll<0)c.roll=true;
@@ -2706,6 +2707,7 @@ function bossTick(dt){
   const tk=octo.tako;
   if(tako.held){legV.copy(boss.legs[TAKO_LEG].tip);g.localToWorld(legV);tk.position.copy(legV);tk.position.y-=0.6;tk.rotation.z=0.25;tk.visible=g.visible;octo.tkGlow.material.opacity=0;}
 }
+let lostT=0;
 const legTrails=boss.legs.map(()=>makeTrail(false));
 function fxTick(dt){
   artTick(dt);flyLegTick(dt);
@@ -2764,10 +2766,13 @@ function fxTick(dt){
   for(let i=puffs.length-1;i>=0;i--){const p=puffs[i];p.r+=(p.max*4+4)*dt;p.m.scale.set(p.r,p.r,3);p.m.material.opacity=Math.max(0,0.9*(1-p.r/p.max));if(p.r>=p.max){scene.remove(p.m);puffs.splice(i,1);}}
   // 부활: 쓰러진 동료 곁에 붙어 있으면 일어난다
   if(PUP)return;
+  // 사람이 모두 쓰러진 채로 20초가 지나면 전멸로 끝낸다 (동료 AI만 남아 끝없이 이어지지 않게)
+  {const hum=heroes.filter(h=>!h.off&&isHuman(h));
+    if(hum.length&&state==='fight'&&hum.every(h=>h.b.dead>0)){if(lostT===0)toast('모두 쓰러졌어요! 20초 안에 동료가 일으키지 못하면 전멸이에요');lostT+=dt;if(lostT>20){lostT=0;finish(false);return;}}else lostT=0;}
   heroes.forEach(h=>{h.revG=0;});
   heroes.forEach(d=>{
     if(d.b.dead<=0||d.off)return;
-    let rate=0;alive().forEach(h=>{if(dist(h.b.root.position,d.b.root.position)<1.9){rate=1;h.revG=Math.max(h.revG,(d.rev+0.01)/3);}});
+    let rate=0;alive().forEach(h=>{if(dist(h.b.root.position,d.b.root.position)<1.9){rate=Math.max(rate,isHuman(h)?1:1.7);h.revG=Math.max(h.revG,(d.rev+0.01)/3);}});   // 동료 AI는 더 빨리 일으킨다
     d.rev=rate?d.rev+rate*dt:Math.max(0,d.rev-dt);
     if(d.rev>=3){d.rev=0;d.b.dead=0;d.b.hp=d.b.hpMax*0.5;d.b.sta=100;d.b.kx=d.b.kz=0;d.b.roll=-1;pop('부활!',d.b);sfx('heal');}
   });
@@ -2852,15 +2857,16 @@ function ai(h,dt){
   // 5. 떨어진 타코야끼는 가장 가까운 동료가 주우러 간다
   if(tako.on){const hs=alive().filter(q=>!isHuman(q)).sort((p,q)=>dist(p.b.root.position,tako)-dist(q.b.root.position,tako));if(hs[0]===h){toward(tako.x,tako.z,0.3);act=false;}}
   // 4. 쓰러진 동료 일으키기
-  const down=heroes.filter(q=>q.b.dead>0&&!q.off);
+  let helpD=null;const down=heroes.filter(q=>q.b.dead>0&&!q.off);
   if(down.length){
     const d=down[0],helpers=alive().filter(q=>!isHuman(q)).sort((p,q)=>dist(p.b.root.position,d.b.root.position)-dist(q.b.root.position,d.b.root.position));
-    if(helpers[0]===h){toward(d.b.root.position.x,d.b.root.position.z,1.2);if(dist(R,d.b.root.position)<1.9)act=false;}
+    if(helpers[0]===h){helpD=d.b.root.position;toward(d.b.root.position.x,d.b.root.position.z,1.2);if(dist(R,d.b.root.position)<1.9)act=false;}
   }
   // 3. 불바닥에서는 나온다
-  const pd=puddleAt(R);if(pd&&pd.fire){const d=dist(R,pd)||1;toward(R.x+(R.x-pd.x)/d*4,R.z+(R.z-pd.z)/d*4,0);}
+  const pd=puddleAt(R);if(pd&&pd.fire&&!helpD){const d=dist(R,pd)||1;toward(R.x+(R.x-pd.x)/d*4,R.z+(R.z-pd.z)/d*4,0);}
   // 2. 위험 범위: 가디언은 노려진 공격을 방패로 받아낸다. 바닥을 쓰는 공격은 뛰어넘고, 나머지는 벗어난다
   for(const t of teles){
+    if(helpD)break;   // 쓰러진 동료를 일으키러 가는 중에는 맞더라도 물러서지 않는다
     if(t.kind!=='avoid'||t.t<0.25||!inTele(t,R,0.7))continue;
     const left=t.dur-t.t;
     if(k==='grd'&&(t.tank===h||t.big)&&!t.rain&&h.skCd<left){danger=true;if(left<0.2)useSkill(h);continue;}
@@ -3098,7 +3104,7 @@ function plateTick(){
     p.d.classList.toggle('dead',dead);p.d.classList.toggle('rev',rev>0);
     p.nm.textContent=h===me?(dead?my.nick||'나':''):h.nick||'동료';p.nm.style.color=h.k.css;
     p.hp.style.transform='scaleX('+Math.max(0,b.hp/b.hpMax)+')';p.d.classList.toggle('self',h===me);
-    p.rv.style.transform='scaleX('+Math.min(1,rev)+')';const tx=sip?'물약 마시는 중':'부활 중';if(p.tx.textContent!==tx)p.tx.textContent=tx;
+    p.rv.style.transform='scaleX('+Math.min(1,rev)+')';const tx=sip?'물약 마시는 중':dead&&lostT>0&&rev<=0?'전멸까지 '+Math.ceil(20-lostT)+'초':'부활 중';p.d.classList.toggle('rev',rev>0||(dead&&lostT>0));if(p.tx.textContent!==tx)p.tx.textContent=tx;
   });
 }
 let lowT=0,buffKey='';const potN=$('potN'),lowEl=$('lowFx'),stunT=$('stunT'),stunFill=$('stunFill'),inkEl=$('inkFx'),bossHpEl=$('bossHp'),castName=$('castName'),castT=$('castT'),castFill=$('castFill'),clockEl=$('clock'),skillBtn=$('skill'),ultBtn=$('ult'),potBtn=$('potion'),buffEl=$('buff'),partyEl=$('party');
@@ -3125,7 +3131,7 @@ function assign(i){   // 내가 조종할 토끼를 정한다. 나머지 둘은 
 function reset(){
   clearList(teles);clearList(rings);clearList(crystals);clearList(puffs);cryst.on=false;
   trails.forEach(t=>t.forEach(q=>{q.pts.length=0;q.m.visible=false;}));hordeReset();ghosts.forEach(g=>{g.t=0;g.m.visible=false;});
-  bossReset();$('clear').hidden=true;
+  bossReset();$('clear').hidden=true;lostT=0;
   heroes.forEach(h=>{const b=h.b;b.hp=b.hpMax;b.sta=100;b.dead=0;b.vx=b.vz=b.kx=b.kz=0;b.jy=0;b.jv=0;b.air=false;b.swing=b.roll=b.dash=-1;
     b.root.scale.setScalar(1);b.root.visible=b.shadow.visible=true;fresh(h);equip(h,h.ci);
     if(h.off){b.dead=1e9;b.dt=9;b.root.visible=b.shadow.visible=false;}});   // 빠진 동료 자리
@@ -3157,6 +3163,14 @@ function finish(win){
   meter();$('end').hidden=false;sfx(win?'win':'ko');
 }
 
+// 앱이 화면에서 사라지면 소리를 멈춘다. 홈 화면 웹앱은 닫아도 이전 화면이 뒤에 남아 음악을 계속 틀 수 있어서, 다시 열 때마다 음악이 겹치지 않게 한다
+function audioQuiet(off){
+  if(!AC)return;
+  try{if(off){if(bgmSrc){try{bgmSrc.stop();}catch(e){}bgmSrc=null;bgmNow='';}AC.suspend();}else AC.resume();}catch(e){}
+}
+document.addEventListener('visibilitychange',()=>audioQuiet(!!document.hidden));
+window.addEventListener('pagehide',()=>{audioQuiet(true);try{if(AC&&AC.close)AC.close();}catch(e){}AC=null;bgmG=null;});   // 화면을 떠날 때는 소리 장치를 아예 닫는다
+window.addEventListener('pageshow',()=>audioQuiet(false));
 /* ---------- 카드 뽑기 화면 ---------- */
 let cardCb=null,cardLeft=0;
 function showCards(o,gold,cb){
