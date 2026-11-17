@@ -5805,7 +5805,7 @@ let audioDead=false;
 try{const myTab=Math.random().toString(36).slice(2),ch=new window.BroadcastChannel('tokki-daesodong-audio');
   ch.onmessage=e=>{if(!e.data||e.data.id===myTab||audioDead)return;audioDead=true;audioQuiet(true);try{if(AC&&AC.close)AC.close();}catch(_){}AC=null;bgmG=null;};
   ch.postMessage({id:myTab});}catch(e){}
-$('ver').textContent='버전 1117-2321';
+$('ver').textContent='버전 1117-2334';
 // 닌자토끼 스킬 그림: 다른 스킬 버튼처럼 남색 원판에 금테를 두르고 가운데에 그림을 그린다 [공격, 보조, 필살]
 function ninIcons(){
   const S=128,base=g=>{const q=g.createRadialGradient(64,58,8,64,64,66);q.addColorStop(0,'#3f6fd8');q.addColorStop(0.6,'#1c3478');q.addColorStop(1,'#0a1638');g.fillStyle=q;g.fillRect(0,0,S,S);
@@ -5939,7 +5939,7 @@ function chatUI(){if(CHAT.btn||!document.createElement)return;const CW=typeof CH
   ['touchstart','touchmove','keydown','keyup'].forEach(k=>p.addEventListener(k,e=>e.stopPropagation(),{passive:true}));
   /* 키보드가 올라오면 채팅창이 그만큼 따라 올라간다: 창을 '지금 보이는 화면'에 맞춰 다시 놓는다 */
   {const v=window.visualViewport,inp=p.querySelector('input');if(v&&v.addEventListener){v.addEventListener('resize',chatVV);v.addEventListener('scroll',chatVV);}
-    inp.addEventListener('focus',()=>{[60,250,500].forEach(t=>setTimeout(chatVV,t));});inp.addEventListener('blur',()=>{[60,250].forEach(t=>setTimeout(chatVV,t));});}
+    inp.addEventListener('focus',()=>{[0,60,150,250,400,600,900].forEach(t=>setTimeout(chatVV,t));});window.addEventListener('scroll',()=>{if(CHAT.open)chatVV();},{passive:true});inp.addEventListener('blur',()=>{[60,250].forEach(t=>setTimeout(chatVV,t));});}
   CHAT.bub=[0,1,2].map(()=>{const e=document.createElement('div');e.className='cbub';e.hidden=true;e.innerHTML='<span></span>';document.body.appendChild(e);return e;});
   setInterval(chatPlace,400);window.addEventListener('resize',chatPlace);}
 function chatOpen(on){if(!CHAT.el||CHAT.open===!!on)return;CHAT.open=!!on;const p=CHAT.el,box=p.querySelector('.cb');
@@ -5960,10 +5960,13 @@ function chatFull(on,quick){const p=CHAT.el;if(!p)return;const box=p.querySelect
     if(!quick&&was&&u.animate&&!p.hidden){const H=u.offsetHeight;CHAT.uan=u.animate([{height:H+'px'},{height:'0px'}],{duration:260,easing:'cubic-bezier(.4,0,.6,1)',fill:'forwards'});CHAT.uan.onfinish=end;setTimeout(end,380);}else end();}}
 function chatVV(){const p=CHAT.el;if(!p||p.hidden)return;const v=window.visualViewport,l=p.querySelector('.cl'),box=p.querySelector('.cb');
   /* 입력 바는 채팅 아이콘이 있던 줄에 (오른쪽 끝에서 왼쪽으로). 키보드에 가려지면 그만큼만 들어 올린다. 기록 창은 바 위로 남은 높이만큼 */
-  const B=CHAT.base||{left:CHAT.btn.offsetLeft,top:CHAT.btn.offsetTop,w:CHAT.btn.offsetWidth||52},right=B.left+B.w,w=Math.max(160,Math.min(440,right-8)),hb=w*58/471,vt=v?v.offsetTop:0,vis=v?v.offsetTop+v.height:window.innerHeight,kb=v?window.innerHeight-vis>60:false;
-  let top=B.top+B.w/2-hb/2;if(top+hb+8>vis)top=vis-hb-8;
-  box.style.width=w+'px';box.style.left=(right-w)+'px';box.style.top='auto';box.style.bottom=Math.round(window.innerHeight-(top+hb))+'px';
-  l.style.height=Math.round(Math.max(64,Math.min(240,top-vt-(kb?10:window.innerHeight*0.2)-w*61/471-8)))+'px';l.scrollTop=l.scrollHeight;}
+  const B=CHAT.base||{left:CHAT.btn.offsetLeft,top:CHAT.btn.offsetTop,w:CHAT.btn.offsetWidth||52},right=B.left+B.w,w=Math.max(160,Math.min(440,right-8)),hb=w*58/471,PH=p.offsetHeight||window.innerHeight;
+  /* 아이폰 홈 화면 앱은 키보드가 뜨면 화면 전체를 위로 밀어 올린다. 밀린 것을 되돌리고, 그래도 남은 만큼은 계산에 넣는다 */
+  if(document.activeElement===p.querySelector('input')&&(window.scrollY||document.documentElement.scrollTop||document.body.scrollTop)){window.scrollTo(0,0);document.documentElement.scrollTop=0;document.body.scrollTop=0;}
+  const vt=v?v.offsetTop:0,vis=v?vt+v.height:PH,kb=v?PH-v.height>60:false;
+  let top=B.top+B.w/2-hb/2;if(kb)top=vis-hb-8;else if(top+hb+8>vis)top=vis-hb-8;
+  box.style.width=w+'px';box.style.left=(right-w)+'px';box.style.top='auto';box.style.bottom=Math.round(PH-(top+hb))+'px';
+  l.style.height=Math.round(Math.max(64,Math.min(240,top-vt-(kb?10:PH*0.2)-w*61/471-8)))+'px';l.scrollTop=l.scrollHeight;}
 function chatBadge(){if(!CHAT.btn)return;const i=CHAT.btn.firstChild;i.hidden=!CHAT.unread;if(CHAT.unread)i.textContent=CHAT.unread>9?'9+':CHAT.unread;}
 function chatDraw(){if(!CHAT.el)return;const l=CHAT.el.querySelector('.cl');l.textContent='';if(!CHAT.log.length){const e=document.createElement('em');e.textContent='아직 대화가 없어요. 인사를 건네 보세요!';l.appendChild(e);}
   CHAT.log.forEach(m=>{const q=document.createElement('p');if(m.me)q.className='me';const n=document.createElement('b');n.textContent=m.n;q.appendChild(n);q.appendChild(document.createTextNode(m.m));l.appendChild(q);});l.scrollTop=l.scrollHeight;}
