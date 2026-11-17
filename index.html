@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="토끼대소동">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="theme-color" content="#0b3e26">
 <title>토끼대소동</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
@@ -5568,7 +5568,7 @@ let audioDead=false;
 try{const myTab=Math.random().toString(36).slice(2),ch=new window.BroadcastChannel('tokki-daesodong-audio');
   ch.onmessage=e=>{if(!e.data||e.data.id===myTab||audioDead)return;audioDead=true;audioQuiet(true);try{if(AC&&AC.close)AC.close();}catch(_){}AC=null;bgmG=null;};
   ch.postMessage({id:myTab});}catch(e){}
-$('ver').textContent='버전 1117-1019';
+$('ver').textContent='버전 1117-1109';
 // 닌자토끼 스킬 그림: 다른 스킬 버튼처럼 남색 원판에 금테를 두르고 가운데에 그림을 그린다 [공격, 보조, 필살]
 function ninIcons(){
   const S=128,base=g=>{const q=g.createRadialGradient(64,58,8,64,64,66);q.addColorStop(0,'#3f6fd8');q.addColorStop(0.6,'#1c3478');q.addColorStop(1,'#0a1638');g.fillStyle=q;g.fillRect(0,0,S,S);
@@ -5833,6 +5833,10 @@ function vicBossAlpha(a){vicBA=a;const roots=[];if(typeof hogMode!=='undefined'&
     if(a>=0.999){m.transparent=o0[0];m.opacity=o0[1];m.depthWrite=o0[2];}else{m.transparent=true;m.opacity=o0[1]*a;m.depthWrite=false;}});}));}
 function vicEnd(){VIC.on=false;window.TSC=1;if(vicBA<1)vicBossAlpha(1);}
 function gPaused(){return net.solo&&(state==='fight'||state==='cut2')&&(!$('setP').hidden||!$('quitP').hidden);}   /* 혼자하기에서 메뉴가 열려 있으면 게임을 멈춘다 */
+/* 일시정지 중에는 음악·효과음도 멈춘다 (메뉴를 닫으면 멈춘 자리부터 이어서) */
+setInterval(()=>{try{if(typeof AC==='undefined'||!AC||document.hidden)return;const p=gPaused();if(p&&AC.state==='running')AC.suspend();else if(!p&&gPaused.was&&AC.state==='suspended')AC.resume();gPaused.was=p;}catch(e){}},120);
+/* 혼자하기: 게임 도중 홈 화면·다른 앱으로 나가면 메뉴를 열어 멈춰 둔다 (돌아와서 메뉴를 닫으면 이어서) */
+document.addEventListener('visibilitychange',()=>{try{if(document.hidden&&net.solo&&(state==='fight'||state==='cut2')&&$('setP').hidden&&$('quitP').hidden&&!(typeof VIC!=='undefined'&&VIC.on)){renderSet();show('setP',true);}}catch(e){}});
 ['setBtn','setBtn0','menuBtn'].forEach(id=>$(id).addEventListener('click',()=>{sfx('pick');renderSet();show('setP',true);}));
 if(document.querySelectorAll)document.querySelectorAll('#gfxSeg button').forEach(b=>b.addEventListener('click',()=>{opt.gfx=+b.dataset.v;store.set('optGfx',String(opt.gfx));sfx('pick');applyOpt();renderSet();}));
 [['optBgm','bgm'],['optSfx','sfx'],['optBuzz','buzz']].forEach(([id,k])=>$(id).addEventListener('click',()=>{opt[k]=!opt[k];store.set('opt'+k,opt[k]?'1':'0');applyOpt();sfx('pick');if(k==='buzz'&&opt.buzz)impact('crit');renderSet();}));
