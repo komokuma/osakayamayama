@@ -5805,7 +5805,7 @@ let audioDead=false;
 try{const myTab=Math.random().toString(36).slice(2),ch=new window.BroadcastChannel('tokki-daesodong-audio');
   ch.onmessage=e=>{if(!e.data||e.data.id===myTab||audioDead)return;audioDead=true;audioQuiet(true);try{if(AC&&AC.close)AC.close();}catch(_){}AC=null;bgmG=null;};
   ch.postMessage({id:myTab});}catch(e){}
-$('ver').textContent='버전 1117-2334';
+$('ver').textContent='버전 1117-2340';
 // 닌자토끼 스킬 그림: 다른 스킬 버튼처럼 남색 원판에 금테를 두르고 가운데에 그림을 그린다 [공격, 보조, 필살]
 function ninIcons(){
   const S=128,base=g=>{const q=g.createRadialGradient(64,58,8,64,64,66);q.addColorStop(0,'#3f6fd8');q.addColorStop(0.6,'#1c3478');q.addColorStop(1,'#0a1638');g.fillStyle=q;g.fillRect(0,0,S,S);
@@ -5939,7 +5939,15 @@ function chatUI(){if(CHAT.btn||!document.createElement)return;const CW=typeof CH
   ['touchstart','touchmove','keydown','keyup'].forEach(k=>p.addEventListener(k,e=>e.stopPropagation(),{passive:true}));
   /* 키보드가 올라오면 채팅창이 그만큼 따라 올라간다: 창을 '지금 보이는 화면'에 맞춰 다시 놓는다 */
   {const v=window.visualViewport,inp=p.querySelector('input');if(v&&v.addEventListener){v.addEventListener('resize',chatVV);v.addEventListener('scroll',chatVV);}
-    inp.addEventListener('focus',()=>{[0,60,150,250,400,600,900].forEach(t=>setTimeout(chatVV,t));});window.addEventListener('scroll',()=>{if(CHAT.open)chatVV();},{passive:true});inp.addEventListener('blur',()=>{[60,250].forEach(t=>setTimeout(chatVV,t));});}
+    inp.addEventListener('focus',()=>{[0,60,150,250,400,600,900].forEach(t=>setTimeout(chatVV,t));});window.addEventListener('scroll',()=>{if(CHAT.open)chatVV();},{passive:true});
+    /* 아이폰은 키보드가 뜰 때 입력칸이 가려질 자리에 있으면 화면 전체를 밀어 올린다. 그래서 화면 맨 위의 보이지 않는 입력칸으로 먼저 키보드를 띄우고, 바가 키보드 위로 올라온 다음에 진짜 입력칸으로 넘긴다 */
+    {const fx=document.createElement('input');fx.type='text';fx.setAttribute('aria-hidden','true');fx.tabIndex=-1;fx.autocomplete='off';fx.style.cssText='position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;border:0;padding:0;font-size:16px;pointer-events:none;z-index:-1';document.body.appendChild(fx);CHAT.fx=fx;
+      const kbUp=()=>{const ph=p.offsetHeight||window.innerHeight;return v?ph-v.height>60:false;};
+      const hand=()=>{if(document.activeElement!==fx)return;if(fx.value){inp.value+=fx.value;fx.value='';}chatVV();try{inp.focus({preventScroll:true});}catch(e){inp.focus();}[30,120,300].forEach(t=>setTimeout(chatVV,t));};
+      const go=()=>{fx.value='';try{fx.focus({preventScroll:true});}catch(e){fx.focus();}let n=0,ok=0;const tm=setInterval(()=>{n++;chatVV();if(document.activeElement!==fx){clearInterval(tm);return;}if(kbUp())ok++;if(ok>=3||n>=16){clearInterval(tm);hand();}},50);};
+      inp.addEventListener('touchend',e=>{if(document.activeElement===inp||document.activeElement===fx)return;e.preventDefault();go();},{passive:false});
+      fx.addEventListener('blur',()=>{[60,250].forEach(t=>setTimeout(chatVV,t));});}
+inp.addEventListener('blur',()=>{[60,250].forEach(t=>setTimeout(chatVV,t));});}
   CHAT.bub=[0,1,2].map(()=>{const e=document.createElement('div');e.className='cbub';e.hidden=true;e.innerHTML='<span></span>';document.body.appendChild(e);return e;});
   setInterval(chatPlace,400);window.addEventListener('resize',chatPlace);}
 function chatOpen(on){if(!CHAT.el||CHAT.open===!!on)return;CHAT.open=!!on;const p=CHAT.el,box=p.querySelector('.cb');
