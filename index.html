@@ -14,7 +14,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
-<style>[hidden]{display:none!important}html,body{margin:0;height:100%}img{max-width:100%}</style>
+<style>[hidden]{display:none!important}html,body{margin:0;height:100%}img{max-width:100%}@media (display-mode:standalone){html{min-height:min(100lvh,calc(100% + env(safe-area-inset-top)))}}html.standalone{min-height:min(100lvh,calc(100% + env(safe-area-inset-top)))}</style>
+<script>if(navigator.standalone)document.documentElement.classList.add('standalone');</script>
 </head>
 <body>
 <style>
@@ -5568,7 +5569,7 @@ let audioDead=false;
 try{const myTab=Math.random().toString(36).slice(2),ch=new window.BroadcastChannel('tokki-daesodong-audio');
   ch.onmessage=e=>{if(!e.data||e.data.id===myTab||audioDead)return;audioDead=true;audioQuiet(true);try{if(AC&&AC.close)AC.close();}catch(_){}AC=null;bgmG=null;};
   ch.postMessage({id:myTab});}catch(e){}
-$('ver').textContent='버전 1117-1109';
+$('ver').textContent='버전 1117-1117';
 // 닌자토끼 스킬 그림: 다른 스킬 버튼처럼 남색 원판에 금테를 두르고 가운데에 그림을 그린다 [공격, 보조, 필살]
 function ninIcons(){
   const S=128,base=g=>{const q=g.createRadialGradient(64,58,8,64,64,66);q.addColorStop(0,'#3f6fd8');q.addColorStop(0.6,'#1c3478');q.addColorStop(1,'#0a1638');g.fillStyle=q;g.fillRect(0,0,S,S);
