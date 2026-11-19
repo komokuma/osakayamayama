@@ -2340,7 +2340,7 @@ function melee(h,dmg,reach,wide,a){   // a: 지금의 공격 동작 (연출용)
         burst(q.x,0.8,q.z,5,fire?0xff7a1f:h.cls==='ham'?0xffd27a:0xbfe6ff,6,0.42);});}
   }
   if(dealt>0){
-    h.idle=0;if(h.up.leech)heal(h,dealt*h.up.leech);
+    h.idle=0;if(h.up.leech)heal(h,dealt*h.up.leech*(gmode==='horde'&&!hogMode&&horde.wave>=41?0.5:1));   /* 어둠 슬라임전에서는 흡혈이 절반 */
     if(h.cls==='grp'){   // 적을 열 번 맞힐 때마다 콤보 중첩이 하나 쌓이고, 맞히는 동안에만 유지된다
       h.stackT=3;if(a&&a.step!==undefined&&!a.heavy&&++h.hitN>=10){h.hitN=0;if(h.stacks<h.up.stMax){h.stacks++;pop('콤보! 중첩 '+h.stacks,b);}}}
     if(h.cls==='grd'&&h.ultT>0)heroes.forEach(a=>{   // 수호 영역 안의 아군에게 방어게이지
@@ -2442,20 +2442,21 @@ function hordeReset(){
 }
 function spawnOK(ty){const T0=MOB_T[ty];if(!T0)return true;
   const nb=Math.max(1,heroes.filter(h=>!h.off).length),cnt=k=>{let c=0;for(const m of mobs)if(m.on&&m.type===k)c++;return c;};
-  if(ty==='glue'&&cnt('glue')>=nb)return false;   /* 꿀 슬라임: 토끼 한 마리당 한 마리까지 */
-  if((ty==='drop'||ty==='goo')&&cnt(ty)>=nb*2)return false;   /* 미끌이·끈끈이: 토끼 한 마리당 두 마리까지 */
+  if(ty==='glue'&&cnt('glue')>=nb*2)return false;   /* 꿀 슬라임: 토끼 한 마리당 두 마리까지 */
+  if((ty==='drop'||ty==='goo')&&cnt(ty)>=nb*3)return false;   /* 미끌이·끈끈이: 토끼 한 마리당 세 마리까지 */
   if((horde.wave%10===0||horde.wave>=41)&&T0.ai==='spit'&&spitN()>=SPIT_BOSS_MAX)return false;
   if((horde.wave%10===0||horde.wave>=41)&&T0.ai!=='spit'&&!T0.king&&meleeN()>=nb*4)return false;   /* 보스 물결: 근접 졸개는 토끼 한 마리당 4마리까지 */   /* 보스 물결: 던지는 슬라임은 한꺼번에 4마리까지 */
   return true;}
-const SPIT_BOSS_MAX=4;function meleeN(){let c=0;for(const m of mobs)if(m.on&&m.T&&m.T.ai!=='spit'&&!m.T.king)c++;return c;}   /* 지금 전장에 있는 근접 졸개 수 */
+const SPIT_BOSS_MAX=6;function meleeN(){let c=0;for(const m of mobs)if(m.on&&m.T&&m.T.ai!=='spit'&&!m.T.king)c++;return c;}   /* 지금 전장에 있는 근접 졸개 수 */
 function meleeRoom(){return Math.max(0,Math.max(1,heroes.filter(h=>!h.off).length)*4-meleeN());}
 function spitN(){let c=0;for(const m of mobs)if(m.on&&m.T&&m.T.ai==='spit')c++;return c;}   /* 지금 전장에 있는 던지는 슬라임 수 */
+var MOB_SID=0;
 function spawnMob(type,ang,w){
   const m=mobs.find(q=>!q.on&&q.die<=0);if(!m)return false;
   setTimeout(()=>{if(m.on&&!m.hpMax)m.hpMax=m.hp;},0);
   const t=MOB_T[type],r=ARENA-0.6-Math.random()*1.6,s=t.s*(t.king?1:0.92+Math.random()*0.16);
   m.hpMax=0;m.hs=0;Object.assign(m,{on:true,type,T:t,s,r:0.45*s,x:Math.sin(ang)*r,z:Math.cos(ang)*r,face:ang+Math.PI,hp:t.hp*(1+0.12*(w-1)+0.010*(w-1)*(w-1))*(t.king?horde.pc:1),dmg:t.dmg*(1+0.075*(w-1)),spd:Math.min(1.5,1+0.012*(w-1)),as:Math.min(1.65,1+0.016*(w-1)),   /* 물결마다 고르게 세진다. 예전엔 20물결부터 이동·공격 속도가 다섯 배 가파르게 올라 후반이 벽처럼 막혔다 */
-    ph:Math.random()*6,atk:0,cd:0.6+Math.random()*1.2,kx:0,kz:0,flash:0,burn:0,burnBy:null,stun:0,ward:0,born:0.4,bornD:0,wob:1,wf:false,lunge:0,mv:0,y:0,st:null,k:0,rollV:0});
+    ph:Math.random()*6,atk:0,cd:0.6+Math.random()*1.2,kx:0,kz:0,flash:0,burn:0,burnBy:null,stun:0,ward:0,born:0.4,bornD:0,wob:1,wf:false,lunge:0,mv:0,y:0,st:null,k:0,rollV:0,vic:0,vt:0,kill:null,dst:null,aimT:Math.random()<0.5?1:2,sid:(MOB_SID=(MOB_SID||0)+1)});   /* 지난 판 다크 킹슬라임의 '처치 연출 중' 표시가 남아 새 슬라임이 안 죽던 문제 */
   if(type==='kingD'){m.hp=t.hp*3*(horde.pc||1);m.dmg=t.dmg;}   // 다크 킹슬라임: 물결 배율 대신 고정 (고수가 깰 수 있는 정도)
   m.hp0=m.hp;m.doomT=32;m.doomOn=false;
   return m;
@@ -2468,8 +2469,8 @@ function nextWave(){   // 물결이 거듭될수록 수가 늘고 새로운 슬�
   const w=++horde.wave,q=[],pc=[0,0.45,0.72,1][heroes.filter(h=>!h.off).length];horde.pc=pc;   // 인원이 적으면 적도 적게 온다
   const add=(t,n)=>{for(let i=0;i<Math.round(n*pc);i++)q.push(t);},boss=w%10===0||w===41;
   const KT=w>=41?'kingD':['king','kingF','kingI','kingT'][(w/10-1)%4],kt=MOB_T[KT];   // 열 물결마다 킹슬라임이 차례로 바뀐다: 초록 → 용암 → 얼음 → 번개 → 다시 초록
-  if(boss){if(KT==='kingD'){add('slimeD',10);add('hornD',6);add('drop',1.5);add('goo',1.5);add('glue',1.5);}   /* 끝판: 미끌이·끈끈이·꿀 슬라임도 섞여 나온다 */else{add(kt.mn,9);add('drop',1);add('goo',1);add('glue',1);}}   /* 킹슬라임 물결마다 미끌이·끈끈이·꿀 슬라임도 섞인다 */   // 다크 킹슬라임 물결: 초록·더듬이 슬라임만
-  else{add('slime',Math.min(30,7+w*2.5));if(w>=3)add('horn',Math.min(10,w));if(w>=5)add('fire',Math.min(7,w*0.6));if(w>=7)add('drop',Math.min(6,w*0.5));if(w>=6)add('goo',Math.min(4,1+w*0.15));if(w>=8)add('glue',Math.min(3,1+w*0.1));   // 두 물결마다 새 슬라임이 하나씩 섞인다
+  if(boss){if(KT==='kingD'){add('slimeD',10);add('hornD',6);add('drop',2.5);add('goo',2.5);add('glue',2.5);}   /* 끝판: 미끌이·끈끈이·꿀 슬라임도 섞여 나온다 */else{add(kt.mn,9);add('drop',2);add('goo',2);add('glue',2);}}   /* 킹슬라임 물결마다 미끌이·끈끈이·꿀 슬라임도 섞인다 */   // 다크 킹슬라임 물결: 초록·더듬이 슬라임만
+  else{add('slime',Math.min(30,7+w*2.5));if(w>=3)add('horn',Math.min(10,w));if(w>=5)add('fire',Math.min(7,w*0.6));if(w>=7)add('drop',Math.min(8,w*0.6));if(w>=6)add('goo',Math.min(6,1+w*0.2));if(w>=8)add('glue',Math.min(4,1+w*0.12));   // 두 물결마다 새 슬라임이 하나씩 섞인다
     if(w>=9)add('snail',Math.min(5,w*0.35));if(w>=11)add('wiz',Math.min(6,w*0.4));if(w>=13)for(let i=0;i<Math.max(1,Math.floor(w/5));i++)q.push('mouth');}
   if(w===1&&horde.cutN>0){for(let i=0;i<horde.cutN;i++){const k=q.indexOf('slime');if(k>=0&&q.length>2)q.splice(k,1);}horde.cutN=0;}   /* 등장 연출에서 달려온 슬라임들이 첫 물결의 일부가 된다 */
   for(let i=q.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)),t=q[i];q[i]=q[j];q[j]=t;}
@@ -2507,11 +2508,11 @@ function killMob(m,h){
 /* ----- 카드 뽑기: 세 물결마다 석 장 가운데 하나를 골라 그 판 동안 강해진다. 킹슬라임을 잡으면 황금 카드 ----- */
 const CARDS=[
   {id:'atk',ic:'sword',n:'날카로운 이빨',d:'공격력 +20%',f:h=>{h.up.atk*=1.2;}},
-  {id:'as',ic:'fist',n:'날쌘 앞발',d:'공격 속도 +15%',f:h=>{h.up.as*=1.15;}},
+  {id:'as',ic:'fist',n:'날쌘 앞발',d:'공격 속도 +15%',f:h=>{h.up.as=Math.min(CARD_CAP.as,h.up.as*1.15);}},
   {id:'hp',ic:'shield',n:'든든한 당근',d:'최대 체력 +25%',f:h=>{const a=h.b.hpMax*0.25;h.b.hpMax+=a;h.b.hp+=a;}},
   {id:'spd',ic:'jump',n:'가벼운 발',d:'이동 속도 +12%',f:h=>{h.b.speed*=1.12;}},
-  {id:'crit',ic:'star',n:'행운의 클로버',d:'치명타 확률 +10%',f:h=>{h.up.crit+=0.1;}},
-  {id:'leech',ic:'potion',n:'달콤한 한 입',d:'준 피해의 4%만큼 회복',f:h=>{h.up.leech+=0.04;}},
+  {id:'crit',ic:'star',n:'행운의 클로버',d:'치명타 확률 +10%',f:h=>{h.up.crit=Math.min(CARD_CAP.crit,h.up.crit+0.1);}},
+  {id:'leech',ic:'potion',n:'달콤한 한 입',d:'준 피해의 4%만큼 회복',f:h=>{h.up.leech=Math.min(CARD_CAP.leech,h.up.leech+0.04);}},
   {id:'def',ic:'shield',n:'폭신한 털',d:'받는 피해 -12%',f:h=>{h.up.def*=0.88;}},
   {id:'ult',ic:'star',n:'달빛 충전',d:'필살 대기시간 -20%',f:h=>{h.up.ult*=0.8;h.ultCd*=0.8;}},
   {id:'sk',ic:'roll',n:'재빠른 손놀림',d:'보조 스킬 대기시간 -25%',f:h=>{h.up.skcd*=0.75;}},
@@ -2538,19 +2539,31 @@ Object.keys(GCLS).forEach(k=>GCLS[k].forEach(q=>{q.g=1;q.c=k;}));
 const GCARDS=[
   {id:'gAtk',g:1,ic:'sword',n:'황금 당근검',d:'공격력 +45%',f:h=>{h.up.atk*=1.45;}},
   {id:'gHp',g:1,ic:'shield',n:'황금 갑옷',d:'최대 체력 +60%, 완전 회복',f:h=>{h.b.hpMax*=1.6;heal(h,h.b.hpMax);}},
-  {id:'gCrit',g:1,ic:'star',n:'황금 눈',d:'치명타 피해 3배, 확률 +12%',f:h=>{h.up.critD=3;h.up.crit+=0.12;}},
-  {id:'gLeech',g:1,ic:'potion',n:'황금 꿀단지',d:'준 피해의 10%만큼 회복',f:h=>{h.up.leech+=0.1;}},
+  {id:'gCrit',g:1,ic:'star',n:'황금 눈',d:'치명타 피해 3배, 확률 +12%',f:h=>{h.up.critD=Math.max(3,h.up.critD);h.up.crit=Math.min(CARD_CAP.crit,h.up.crit+0.12);}},
+  {id:'gLeech',g:1,ic:'potion',n:'황금 꿀단지',d:'준 피해의 6%만큼 회복',f:h=>{h.up.leech=Math.min(CARD_CAP.leech,h.up.leech+0.06);}},
   {id:'gUlt',g:1,ic:'star',n:'황금 달',d:'필살 지속 +50%, 대기 -30%',f:h=>{h.up.ultT*=1.5;h.up.ult*=0.7;h.ultCd*=0.7;}},
-  {id:'gReach',g:1,ic:'fist',n:'황금 장갑',d:'공격 범위 +30%, 속도 +18%',f:h=>{h.up.reach+=0.55;h.up.as*=1.18;}}];
-const ALLC={};CARDS.concat(GCARDS,...Object.values(GCLS)).forEach(q=>{ALLC[q.id]=q;});
+  {id:'gReach',g:1,ic:'fist',n:'황금 장갑',d:'공격 범위 +30%, 속도 +18%',f:h=>{h.up.reach+=0.55;h.up.as=Math.min(CARD_CAP.as,h.up.as*1.18);}}];
+/* 상한이 찬 능력치 카드는 같은 이름·그림으로 다른 효과를 준다 */
+const CARD_ALT={
+  as:{id:'asX',ic:'fist',n:'날쌘 앞발',d:'공격력 +10% (공격 속도는 이미 최대)',f:h=>{h.up.atk*=1.1;}},
+  crit:{id:'critX',ic:'star',n:'행운의 클로버',d:'치명타 피해 +20% (치명타 확률은 이미 최대)',f:h=>{h.up.critD+=0.2;}},
+  leech:{id:'leechX',ic:'potion',n:'달콤한 한 입',d:'최대 체력 +15% (흡혈은 이미 최대)',f:h=>{const a=h.b.hpMax*0.15;h.b.hpMax+=a;h.b.hp+=a;}},
+  gLeech:{id:'gLeechX',g:1,ic:'potion',n:'황금 꿀단지',d:'최대 체력 +30%, 완전 회복 (흡혈은 이미 최대)',f:h=>{h.b.hpMax*=1.3;heal(h,h.b.hpMax);}},
+  gCrit:{id:'gCritX',g:1,ic:'star',n:'황금 눈',d:'치명타 피해 3배, 공격력 +15% (치명타 확률은 이미 최대)',f:h=>{h.up.critD=Math.max(3,h.up.critD);h.up.atk*=1.15;}},
+  gReach:{id:'gReachX',g:1,ic:'fist',n:'황금 장갑',d:'공격 범위 +30%, 이동 속도 +12% (공격 속도는 이미 최대)',f:h=>{h.up.reach+=0.55;h.b.speed*=1.12;}}};
+const ALLC={};CARDS.concat(GCARDS,...Object.values(GCLS),Object.values(CARD_ALT)).forEach(q=>{ALLC[q.id]=q;});
 const PICK_T=20;   /* 카드 고르는 시간(초). 못 고르면 셋 중 아무거나 저절로 고른다 */
+/* 카드 상한: 41물결 내내 같은 카드를 겹쳐 고르면 흡혈·공속·치명타가 끝없이 쌓여 마지막 보스까지 맞으면서 깰 수 있었다 */
+const CARD_CAP={as:2.0,crit:0.5,leech:0.12};
+function cardFull(h,q){const u=h.up,id=q.id;if(id==='as'||id==='gReach')return u.as>=CARD_CAP.as-1e-6;if(id==='crit'||id==='gCrit')return u.crit>=CARD_CAP.crit-1e-6;if(id==='leech'||id==='gLeech')return u.leech>=CARD_CAP.leech-1e-6;return false;}
+function cardFix(h,a){return a.map(q=>cardFull(h,q)&&CARD_ALT[q.id]?CARD_ALT[q.id]:q);}   /* 꽉 찬 카드는 대신 다른 효과 카드로 */
 function startPick(gold){
   horde.pick={gold,t:PICK_T,wait:[]};
   const mix=a=>a.slice().sort(()=>Math.random()-0.5);
   heroes.forEach(h=>{if(h.off)return;
     let o;
-    if(gold){const mine=mix((GCLS[h.cls]||[]).filter(q=>h.cards.indexOf(q.id)<0));o=mine.concat(mix(GCARDS)).slice(0,3).map(q=>q.id);}   // 내 직업의 스킬 강화를 먼저
-    else o=mix(CARDS).slice(0,3).map(q=>q.id);
+    if(gold){const mine=mix((GCLS[h.cls]||[]).filter(q=>h.cards.indexOf(q.id)<0));o=mine.concat(mix(cardFix(h,GCARDS))).slice(0,3).map(q=>q.id);}   // 내 직업의 스킬 강화를 먼저
+    else o=mix(cardFix(h,CARDS)).slice(0,3).map(q=>q.id);
     h.offers=o;
     if(h===me&&!AUTO){horde.pick.wait.push(h);showCards(o,gold,id=>takeCard(h,id),h.rerolls,()=>reroll(h));}
     else if(h.remote){const cn=NET.conns.find(q=>q.peer===h.peer);if(cn){horde.pick.wait.push(h);try{cn.send({t:'c',o,g:gold?1:0,r:h.rerolls});}catch(e){}}else takeCard(h,o[0]);}
@@ -2558,7 +2571,7 @@ function startPick(gold){
 }
 function reroll(h){   // 다시 뽑기: 한 판에 두 번까지, 지금 나온 카드는 되도록 빼고 새로 석 장
   const p=horde.pick;if(!p||!h.offers||!(h.rerolls>0))return;h.rerolls--;
-  const mix=a=>a.slice().sort(()=>Math.random()-0.5),old=h.offers,pool=p.gold?(GCLS[h.cls]||[]).filter(q=>h.cards.indexOf(q.id)<0).concat(GCARDS):CARDS;
+  const mix=a=>a.slice().sort(()=>Math.random()-0.5),old=h.offers,pool=cardFix(h,p.gold?(GCLS[h.cls]||[]).filter(q=>h.cards.indexOf(q.id)<0).concat(GCARDS):CARDS);
   const o=mix(pool.filter(q=>old.indexOf(q.id)<0)).concat(mix(pool.filter(q=>old.indexOf(q.id)>=0))).slice(0,3).map(q=>q.id);h.offers=o;p.t=Math.max(p.t,10);
   if(h===me&&!AUTO)showCards(o,p.gold,id=>takeCard(h,id),h.rerolls,()=>reroll(h));
   else if(h.remote){const cn=NET.conns.find(q=>q.peer===h.peer);if(cn){try{cn.send({t:'c',o,g:p.gold?1:0,r:h.rerolls});}catch(e){}}}
@@ -2594,11 +2607,16 @@ function kingTrail(m,dt){m.trT=(m.trT||0)-dt;if(m.trT>0)return;m.trT=0.12;
   if(m.T.el==='fire')addPuddle(m.x,m.z,true,1.4,4,1);}   /* 얼음 킹슬라임은 굴러간 길도 얼리지 않는다 */
 function mobRoll(m,ang,w,dmg){   // 몸을 웅크렸다가 일직선으로 굴러 돌진한다
   const wd=Math.max(0.45,0.85/(m.as||1));m.st={k:'roll',t:0,ang,wind:wd};m.face=ang;
-  tele({shape:'rect',x:m.x,z:m.z,ang,len:13,w,dur:wd,color:0xff8a3c,kind:'avoid',hit:t=>{mobHit(t,dmg);smp('whoosh2',0.5,0.6);}});
+  const sid=m.sid;tele({shape:'rect',x:m.x,z:m.z,ang,len:13,w,dur:wd,color:0xff8a3c,kind:'avoid',hit:t=>{if(!m.on||m.sid!==sid||m.die>0)return;mobHit(t,dmg);smp('whoosh2',0.5,0.6);}});   /* 굴러 오기 전에 쓰러뜨렸으면 맞지 않는다 */
 }
 function mobRanged(m,t){
   const P=t.b.root.position,ty=m.type,q=Math.sqrt(m.as||1);let x=P.x,z=P.z;m.lunge=0.2;
-  if((ty==='drop'||ty==='goo'||ty==='glue')&&t.b){const ld=Math.max(0.45,0.95/q)+0.15;x+=(t.b.vx||0)*ld;z+=(t.b.vz||0)*ld;const rr=Math.hypot(x,z),mx=ARENA-1;if(rr>mx){x*=mx/rr;z*=mx/rr;}}   /* 피해 없는 장판 슬라임: 토끼가 지나갈 자리를 내다보고 던진다 */   // 빨라진 적은 투사체도 빠르다
+  if((ty==='drop'||ty==='goo'||ty==='glue')&&t.b){const ld=Math.max(0.45,0.95/q)+0.15,vx=t.b.vx||0,vz=t.b.vz||0;
+    if(m.aimT===2){const r=Math.random();   /* 제멋대로 던지는 녀석: 너무 멀리, 뒤쪽, 아무 데나 */
+      if(r<0.35){x+=vx*ld*1.9;z+=vz*ld*1.9;}else if(r<0.6){x-=vx*ld*0.8;z-=vz*ld*0.8;}
+      const a=Math.random()*6.283,d=1.8+Math.random()*2.8;x+=Math.sin(a)*d;z+=Math.cos(a)*d;}
+    else{x+=vx*ld;z+=vz*ld;}   /* 내다보는 녀석: 토끼가 지나갈 자리에 */
+    const rr=Math.hypot(x,z),mx=ARENA-1;if(rr>mx){x*=mx/rr;z*=mx/rr;}}   /* 피해 없는 장판 슬라임: 토끼가 지나갈 자리를 내다보고 던진다 */   // 빨라진 적은 투사체도 빠르다
   if(ty==='wiz'){   // 발밑의 마법진
     smp('chime',0.4,0.7);tele({shape:'circ',x,z,r:2.4,dur:Math.max(0.6,1.25/q),color:0xb47cff,kind:'avoid',hit:q=>{mobHit(q,m.dmg);burst(x,0.6,z,12,0xc9a0ff,7,0.5);boomAt(x,1.4,z,4.5,0.4,0,20);smp('tick',0.5,0.6);}});
     if(Math.random()<0.4){puff(m.x,m.z,0xc9a0ff,1.6);const a=Math.random()*6.283,r=8+Math.random()*9;m.x=Math.sin(a)*r;m.z=Math.cos(a)*r;puff(m.x,m.z,0xc9a0ff,1.6);}
@@ -2642,7 +2660,7 @@ function mobTick(dt){
     if(horde.t<=0&&n<MOB_MAX-2){const Q=horde.queue;let k=Q.length-1;while(k>=0&&!spawnOK(Q[k]))k--;   /* 지금 나올 수 있는 슬라임부터 (상한에 걸린 종류는 자리가 날 때까지 기다린다) */
       if(k>=0){const ty=Q.splice(k,1)[0];const sm=spawnMob(ty,pick(horde.gates)+(Math.random()-0.5)*0.9,horde.wave);horde.t=Math.max(0.1,0.42-horde.wave*0.03);if(sm&&ty==='kingD'){sm.x=0;sm.z=0;sm.born=sm.bornD=3.2;horde.darkOn=1;horde.t=3.6;toast('어둠이 깨어나요…');smp('roar',1,0.45);smp('rumb',0.9,0.6);shake=Math.max(shake,0.6);}   /* 다크 킹슬라임: 한가운데 땅속에서 천천히 솟아오른다. 졸개는 다 솟은 뒤에 */}else horde.t=0.5;}
   }else if(n===0&&hs.length&&horde.wave>=41){   // 41물결(다크 킹슬라임)을 막으면 슬라임 대소동 끝
-    if(!horde.won){horde.won=1;toast('어둠을 물리쳤어요!');sfx('roar');setTimeout(()=>{if(state==='fight'&&gmode==='horde'&&!hogMode){hordeLog();if(NET.host&&NET.conns.length)netSend({t:'hw',st:netStats()});finish(true);}},2200);}
+    if(!horde.won){horde.won=1;toast('어둠을 물리쳤어요!');sfx('roar');setTimeout(()=>{if(state==='fight'&&gmode==='horde'&&!hogMode){hordeLog();if(NET.host&&NET.conns.length)netSend({t:'hw',st:netStats()});hordePod(false);}},2200);}
   }else if(n===0&&hs.length){   // 한 물결을 다 막았다: 쓰러진 동료가 일어나고, 세 물결마다 포션을 하나 받는다
     hordeLog();horde.rest=3.5;if(horde.wave===40)horde.muteBgm=1;startPick(horde.wave%10===0);   // 물결을 막을 때마다 카드 뽑기, 킹슬라임을 잡으면 황금 카드
     heroes.forEach(h=>{const b=h.b;if(b.dead>0&&!h.off){b.dead=0;b.hp=b.hpMax*0.4;b.sta=100;b.kx=b.kz=0;b.roll=-1;h.rev=0;pop('부활!',b);}
@@ -2728,7 +2746,7 @@ function mobDraw(dt){
 }
 // 동료의 판단 (슬라임 떼): 가까운 적에게 붙어 싸우고, 쓰러진 동료를 일으키고, 몰리면 필살 스킬을 쓴다
 function aiHorde(h,dt){
-  const b=h.b,R=b.root.position,c={mx:0,mz:0},k=h.cls,tgt=targetOf(h),reach=(k==='ham'?REACH+0.7:k==='grp'?REACH-0.2:REACH)+(k==='ham'&&h.ultT>0?1.8:0);
+  const b=h.b,R=b.root.position,c={mx:0,mz:0},k=h.cls,tgt=targetOf(h),reach=(k==='ham'?REACH+0.7:k==='grp'?REACH-0.2:k==='grd'?REACH+0.4:REACH)+(k==='ham'&&h.ultT>0?1.8:0);
   let go=null,stop=0.5,act=true;
   if(tgt.mob){go=tgt;stop=tgt.rad+reach*0.65;}
   else if(h!==me){const P=me.b.root.position;if(dist(P,R)>4){go=P;stop=3;}}
@@ -2948,12 +2966,12 @@ function heroTick(h,c,dt){   // 한 프레임 동안의 공격, 스킬, 버프 �
     h.whirl=null;
   }else h.whirl=null;
   if(h.act){
-    const a=h.act;a.t+=dt;const sl=k==='grp'||k==='nin'?0.75:k==='ham'?0.2:0.4;c.mx*=sl;c.mz*=sl;c.roll=false;
+    const a=h.act;a.t+=dt;const sl=k==='grp'||k==='nin'?0.75:k==='ham'?0.2:0.7;   /* 전사: 베면서 걷는 속도 0.4 -> 0.7 */c.mx*=sl;c.mz*=sl;c.roll=false;
     if(!a.done&&a.t>=a.dur*a.at){
       a.done=true;
       if(a.thr){ninThrow(h);a.landed=true;}else{
       const big=k==='ham'&&h.ultT>0;
-      const dealt=melee(h,a.dmg*(big?2.3:1),(k==='ham'?REACH+0.7:k==='grp'?REACH-0.2:REACH)+(big?1.8:0),false,a);
+      const dealt=melee(h,a.dmg*(big?2.3:1),(k==='ham'?REACH+0.7:k==='grp'?REACH-0.2:k==='grd'?REACH+0.4:REACH)+(big?1.8:0),false,a);
       if(k!=='grp'){const mv=a.name?CTR_MOVE:BODY_MOVE[k][a.step];slashArc(h,mv.roll,(k==='ham'?1.45:1)*(big?2.4:1),k==='ham'?0xffd9a0:0xe8f6ff);}
       else if(a.last)slashArc(h,1.5708,0.9,0xffe2b0);
       if(k==='ham'&&(a.big||big)){quake(h,big);if(h.up.quake)shock(h,R.x+Math.sin(b.face)*1.5,R.z+Math.cos(b.face)*1.5,6,a.dmg*0.5,1.5);}
@@ -3816,7 +3834,7 @@ function endTick(dt){
     }
     if(state==='cheer'&&clap0){
       if(endT>clap0+0.4&&!POD.on)$('clear').hidden=false;   /* 시상대에서는 '클리어' 글자 대신 머리 위에 닉네임을 띄운다 */
-      if(endT>clap0+8.2){$('clear').hidden=true;finish(true);}
+      if(endT>clap0+8.2){$('clear').hidden=true;const lose=!!POD.lose;POD.lose=false;finish(!lose);}
     }
   }
 }
@@ -3863,16 +3881,20 @@ function podAssign(){   /* 기여 점수 순으로 1·2·3등 자리에 세운�
     puff(s[0],s[1],0xfff3a0,2.5);});
   return hs;}
 /* 밤톨대왕 등 다른 보스를 잡았을 때도 같은 시상대로 넘어간다 */
+/* 슬라임 대소동: 이기든 지든 시상대에 선다. 순위는 그 판 전체(모든 물결)의 기여 점수로 */
+function hordePod(lose){if(state!=='fight')return;if(typeof defEnd==='function')defEnd();if(typeof vicEnd==='function'&&typeof VIC!=='undefined'&&VIC.on)vicEnd();if(typeof scBars==='function')scBars(false);
+  window.__hush=false;window.__hushV=false;mobs.forEach(q=>{if(q.on){q.on=false;q.die=0.24;}});clearList(teles);if(typeof horde!=='undefined'){horde.queue=[];horde.pick=null;}if(typeof hideCards==='function')hideCards();
+  if(typeof toastT!=='undefined')toastT=Math.min(toastT,0.05);POD.lose=!!lose;podEnter();}
 function podEnter(){if(typeof NET!=='undefined'&&NET.host&&NET.conns.length)netSend({t:'st',st:netStats()});   /* 시상대에 오르기 전에 최종 기록을 참가자에게 보낸다 (밤톨대왕전에서 참가자 결과표가 0으로 나오던 문제) */
   state='cheer';endT=0;clapT=0;clapN=0;clap0=0;show('hud',false);if(typeof specHide==='function')specHide();
-  heroes.forEach(h=>{const b=h.b;fresh0(h);h.want=h.hold=false;h.tx=undefined;if(h.off)return;if(b.dead>0){b.dead=0;b.hp=b.hpMax*0.3;b.kx=b.kz=0;b.roll=-1;}h.cheer=true;});podStart();sfx('win');}
+  heroes.forEach(h=>{const b=h.b;fresh0(h);h.want=h.hold=false;h.tx=undefined;if(h.off)return;if(b.dead>0){b.dead=0;b.hp=b.hpMax*0.3;b.kx=b.kz=0;b.roll=-1;}h.cheer=true;});podStart();if(!POD.lose)sfx('win');}
 function podRain(n){if(typeof hogConfetti!=='function')return;hogConfetti(0,8.1,0,0);   /* 하늘에서 반짝이 종이가 팔랑팔랑 내려온다 */
   for(let i=0;i<n;i++){const m=new T.Mesh(HCONF_G,HCONF_M[Math.floor(Math.random()*HCONF_M.length)]);m.position.set((Math.random()-0.5)*8,6.5+Math.random()*2.5,7+Math.random()*3.4);m.rotation.set(Math.random()*6,Math.random()*6,Math.random()*6);scene.add(m);
     HCONF.push({m,vx:(Math.random()-0.5)*0.8,vz:(Math.random()-0.5)*0.8,vy:-1.2,sx:(Math.random()-0.5)*12,sy:(Math.random()-0.5)*12,ph:Math.random()*6,t:0,life:5.5+Math.random()});}}
 function podTick(dt){if(!POD.on||!POD.g)return;POD.t+=dt;POD.cf=(POD.cf||0)-dt;if(POD.cf<=0){POD.cf=0.3;podRain(POD.t<1?26:10);}
-  if(POD.t>0.5&&!POD.pop){POD.pop=1;hogConfetti(-2.6,8.6,45,1.2);hogConfetti(2.6,8.6,45,1.2);smp('plop',0.8,1.3);smp('tick',0.8,1.8);jingle('podJ',0.62);smp('podClap',0.6,1,0.15);smp('podClap2',0.55,1,0.35);smp('podWhis',0.32,1,0.5);smp('podWhis',0.22,1.12,2.6);}   /* 관중 박수 두 겹과 휘파람 */   /* 가까이 다가와 멈추는 순간 양옆에서 폭죽이 팡 */
+  if(POD.t>0.5&&!POD.pop){POD.pop=1;hogConfetti(-2.6,8.6,45,1.2);hogConfetti(2.6,8.6,45,1.2);if(POD.lose){smp('podClap',0.3,1,0.15);}else{smp('plop',0.8,1.3);smp('tick',0.8,1.8);jingle('podJ',0.62);smp('podClap',0.6,1,0.15);smp('podClap2',0.55,1,0.35);smp('podWhis',0.32,1,0.5);smp('podWhis',0.22,1.12,2.6);}}   /* 슬라임 대소동 전멸 뒤 시상대: 팡파르 없이 박수만 작게 */   /* 관중 박수 두 겹과 휘파람 */   /* 가까이 다가와 멈추는 순간 양옆에서 폭죽이 팡 */
 const u=Math.min(1,POD.t/0.35),e=1-(1-u)*(1-u);POD.g.scale.set(1,e*(1+Math.sin(u*3.1416)*0.12),1);}   /* 땅에서 쑥 솟아오른다 */
-function podHide(){POD.on=false;POD.ord=null;if(POD.hid){POD.hid.forEach(o=>{o.visible=true;});POD.hid.length=0;}if(POD.g)POD.g.visible=false;heroes.forEach(h=>{h.pod=-1;h.podY=0;if(h.b&&h.b.root)h.b.root.rotation.z=0;});}
+function podHide(){POD.on=false;POD.lose=false;POD.ord=null;if(POD.hid){POD.hid.forEach(o=>{o.visible=true;});POD.hid.length=0;}if(POD.g)POD.g.visible=false;heroes.forEach(h=>{h.pod=-1;h.podY=0;if(h.b&&h.b.root)h.b.root.rotation.z=0;});}
 function cheerCtl(h,i){   // 기뻐하는 동안의 움직임: 단상 위에서 앞을 보고 선다 (1등만 폴짝폴짝 뛴다)
   if(POD.on&&h.pod>=0){const c={mx:0,mz:0,aim:0};if(h.hop&&h.pod===0){c.jump=true;h.b.sta=100;}h.hop=false;return c;}
   const R=h.b.root.position,dx=CHEER[i][0]-R.x,dz=CHEER[i][1]-R.z,d=Math.hypot(dx,dz),c={mx:0,mz:0};
@@ -3885,7 +3907,7 @@ function ai(h,dt){
   const b=h.b,R=b.root.position,c={mx:0,mz:0},k=h.cls,dB=Math.hypot(R.x,R.z)||1;
   let go=null,stop=0.4,act=true,danger=false,hold=false;
   const toward=(x,z,s)=>{go={x,z};stop=s;};
-  const tgt=targetOf(h),reach=(k==='ham'?REACH+0.7:k==='grp'?REACH-0.2:REACH)+(k==='ham'&&h.ultT>0?1.8:0);
+  const tgt=targetOf(h),reach=(k==='ham'?REACH+0.7:k==='grp'?REACH-0.2:k==='grd'?REACH+0.4:REACH)+(k==='ham'&&h.ultT>0?1.8:0);
   // 6. 평소 자리: 목표에 바짝 붙는다
   if(tgt.mob||tgt.leg)toward(tgt.x,tgt.z,tgt.rad+reach*0.6);else toward(R.x/dB*(BOSS_R+1.2),R.z/dB*(BOSS_R+1.2),0.5);
   if(boss.away&&!tgt.mob){go=null;act=false;}
@@ -4048,7 +4070,8 @@ function netOnData(m){   // 참가자가 방장에게서 받은 것
   else if(m.t==='w'&&state==='fight'){netStatsIn(m.st);finish(false);}
   else if(m.t==='w'&&state==='wipe'){netStatsIn(m.st);const R=document.getElementById('res');if(R&&!R.hidden){const s=Math.floor(boss.clock);resShow(false,Math.floor(s/60)+':'+String(s%60).padStart(2,'0'));}}   /* 내 화면이 먼저 전멸 결과를 띄웠어도, 방장이 보낸 기록으로 다시 채운다 (예전엔 피해량이 0으로 남았다) */
   else if(m.t==='lz'&&state==='fight'){if(typeof startDefeat==='function')startDefeat(heroes[m.i],true);return;}   // 전멸: 마지막 토끼를 비추는 연출을 같이 본다
-  else if(m.t==='hw'&&state==='fight'){netStatsIn(m.st);finish(true);}
+  else if(m.t==='hw'&&state==='fight'){netStatsIn(m.st);hordePod(false);}
+  else if(m.t==='pl'&&state==='fight'){netStatsIn(m.st);hordePod(true);}   /* 슬라임 대소동 전멸: 같이 시상대로 */
 }
 function netOnInput(h,m){   // 방장이 참가자에게서 받은 조작
   const r=h.rin||(h.rin={});r.mx=+m[0]||0;r.mz=+m[1]||0;const l=Math.hypot(r.mx,r.mz);if(l>1){r.mx/=l;r.mz/=l;}
@@ -6200,7 +6223,7 @@ let audioDead=false;
 try{const myTab=Math.random().toString(36).slice(2),ch=new window.BroadcastChannel('tokki-daesodong-audio');
   ch.onmessage=e=>{if(!e.data||e.data.id===myTab||audioDead)return;audioDead=true;audioQuiet(true);try{if(AC&&AC.close)AC.close();}catch(_){}AC=null;bgmG=null;};
   ch.postMessage({id:myTab});}catch(e){}
-$('ver').textContent='버전 1119-0955';
+$('ver').textContent='버전 1119-1446';
 // 닌자토끼 스킬 그림: 다른 스킬 버튼처럼 남색 원판에 금테를 두르고 가운데에 그림을 그린다 [공격, 보조, 필살]
 function ninIcons(){
   const S=128,base=g=>{const q=g.createRadialGradient(64,58,8,64,64,66);q.addColorStop(0,'#3f6fd8');q.addColorStop(0.6,'#1c3478');q.addColorStop(1,'#0a1638');g.fillStyle=q;g.fillRect(0,0,S,S);
@@ -6816,7 +6839,7 @@ function defTick(){const el=(performance.now()-DEF.t0)/1000,D=3.4,k=Math.min(1,e
   if(el>0.9)cam.position.copy(camT);cam.lookAt(P.x,P.y+0.55+0.4*(1-e),P.z);cam.rotateZ(0.05*e);
   window.TSC=0.16-0.08*k;   /* 다가갈수록 더 느리게 */
   fadeEl.style.opacity=Math.max(0,Math.min(1,(el-D)/0.5));
-  if(el>D+0.6&&!DEF.done){DEF.done=true;if(typeof PUP==='undefined'||!PUP)finish(false);}   /* 참가자는 방장의 결과 소식을 기다린다 */
+  if(el>D+0.6&&!DEF.done){DEF.done=true;if(typeof PUP==='undefined'||!PUP){if(gmode==='horde'&&!hogMode){if(NET.host&&NET.conns.length)netSend({t:'pl',st:netStats()});hordePod(true);}else finish(false);}}   /* 슬라임 대소동은 전멸해도 시상대로 */   /* 참가자는 방장의 결과 소식을 기다린다 */
   if(el>D+6&&state==='fight')finish(false);}
 function defEnd(){if(!DEF.on)return;DEF.on=false;window.TSC=1;if(typeof dofEl!=='undefined'){dofEl.classList.remove('on');dofEl.classList.remove('wide');}fadeEl.style.opacity=0;}
 /* 등장 직전의 두구두구: 낮은 북소리가 점점 빨라지고 커진다 */
@@ -6940,7 +6963,7 @@ function update(dt){
   if(dlgQ.length){dlgT-=dt;if(dlgT<=0){dlgQ.shift();showDlg();}}
   if(toastT>0){toastT-=dt;toastEl.style.opacity=Math.min(1,toastT*2);if(toastT<=0)toastEl.hidden=true;}
   const fight=state==='fight';
-  const fin=(gmode==='raid'&&(state==='dying'||state==='cheer'||state==='won'))||(hogMode&&(state==='cheer'||state==='won'));   // 문어를 무찌른 뒤의 연출
+  const fin=(gmode==='raid'&&(state==='dying'||state==='cheer'||state==='won'))||(gmode==='horde'&&(state==='cheer'||state==='won'));   /* 밤톨대왕·슬라임 대소동 시상대 */   // 문어를 무찌른 뒤의 연출
   if(!fight&&!fin&&state!=='won'&&state!=='wipe'){stageTick(dt);artTick(dt);hud();return;}
   // 내 조작
   let mx=ix,mz=iy;
@@ -7017,7 +7040,7 @@ function update(dt){
   if(state==='dying'){camT.set(Math.sin(camYaw)*20,7.5,Math.cos(camYaw)*20);cam.position.lerp(camT,1-Math.exp(-3*dt));cam.lookAt(0,4,0);}
   else if(fin&&POD.on){   /* 시상대: 낮은 자리에서 올려다본다. 살짝 멀리서 0.5초 동안 다가와 멈춘 뒤, 단상을 가운데 두고 좌우로 천천히 돈다 */
     const t=POD.t,u=Math.min(1,t/0.5),e=1-Math.pow(1-u,3),D=14.4-3.2*e,a=t>0.5?Math.sin((t-0.5)*0.45)*0.42:0;
-    cam.position.set(Math.sin(a)*D,0.55,8.1+Math.cos(a)*D);cam.lookAt(0,2.7,8.1);podNames(state==='cheer'&&t>0.45);podTitle(state==='cheer'&&t>0.5);}
+    cam.position.set(Math.sin(a)*D,0.55,8.1+Math.cos(a)*D);cam.lookAt(0,2.7,8.1);podNames(state==='cheer'&&t>0.45);podTitle(state==='cheer'&&t>0.5&&!POD.lose);}   /* 슬라임 대소동을 끝까지 깨지 못하고 끝났으면 '클리어!' 그림은 띄우지 않는다 */
   else if(fin){camT.set(0,2.5,14);cam.position.lerp(camT,1-Math.exp(-4*dt));cam.lookAt(0,1.5,8.1);}
   if(VIC.on)vicTick();
   if(DEF.on)defTick();
