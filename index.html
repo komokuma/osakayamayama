@@ -6564,7 +6564,7 @@ let audioDead=false;
 try{const myTab=Math.random().toString(36).slice(2),ch=new window.BroadcastChannel('tokki-daesodong-audio');
   ch.onmessage=e=>{if(!e.data||e.data.id===myTab||audioDead)return;audioDead=true;audioQuiet(true);try{if(AC&&AC.close)AC.close();}catch(_){}AC=null;bgmG=null;};
   ch.postMessage({id:myTab});}catch(e){}
-$('ver').textContent='버전 1120-1712';
+$('ver').textContent='버전 1120-1908';
 // 닌자토끼 스킬 그림: 다른 스킬 버튼처럼 남색 원판에 금테를 두르고 가운데에 그림을 그린다 [공격, 보조, 필살]
 function ninIcons(){
   const S=128,base=g=>{const q=g.createRadialGradient(64,58,8,64,64,66);q.addColorStop(0,'#3f6fd8');q.addColorStop(0.6,'#1c3478');q.addColorStop(1,'#0a1638');g.fillStyle=q;g.fillRect(0,0,S,S);
@@ -7028,9 +7028,10 @@ function lockSet(on){lockOn=on;store.set('optLock',on?'1':'0');lockBtn.classList
 const VIEW_K=[0.72,1,1.32,1.62],VIEW_N=['가까이','중간','멀리','매우 멀리'],viewBtn=$('viewBtn');let viewI=1,viewK=1;
 /* 매우 멀리(3)는 세로 화면에서만. 타겟 고정 중에는 멀리까지만 (단, 패턴이 시야를 잡을 때는 매우 멀리 그대로) */
 function viewPortrait(){try{return !(window.matchMedia&&matchMedia('(orientation: landscape)').matches);}catch(e){return innerHeight>=innerWidth;}}
-function viewEff(){return viewI===3&&(!viewPortrait()||(lockOn&&!(typeof PATV!=='undefined'&&PATV.m)))?2:viewI;}
+function lockV(){return lockOn&&!(typeof gmode!=='undefined'&&gmode==='horde'&&!(typeof hogMode!=='undefined'&&hogMode));}   /* 슬라임 모드는 타겟 버튼이 없으니 저장된 타겟 고정을 시야 제한에 쓰지 않는다 */
+function viewEff(){return viewI===3&&(!viewPortrait()||(lockV()&&!(typeof PATV!=='undefined'&&PATV.m)))?2:viewI;}
 function viewSet(i){viewI=i;store.set('optView',String(i));viewBtn.setAttribute('data-v',VIEW_N[viewEff()]);viewBtn.classList.toggle('v2',i!==1);}
-function viewNext(){const n=viewPortrait()&&!lockOn?4:3;viewSet(viewI>=n-1?0:viewI+1);}
+function viewNext(){const n=viewPortrait()&&!lockV()?4:3;viewSet(viewI>=n-1?0:viewI+1);}
 function tapBtn(el,fn){let last=0;   /* 왼쪽 이동판을 누르고 있는 동안에도 눌리게: 손가락이 닿는 순간 바로 동작 (click은 두 번째 손가락에서 안 오는 기기가 있다) */
   el.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();last=performance.now();fn();});
   el.addEventListener('touchstart',e=>{e.stopPropagation();},{passive:true});
